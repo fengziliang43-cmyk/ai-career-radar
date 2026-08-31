@@ -30,6 +30,7 @@ import {
   fitMeta,
   liangTopActions,
   noveltyMeta,
+  requiredKnowledgeNote,
   snapshot,
   stageMeta,
   statusMeta,
@@ -308,10 +309,34 @@ function ClusterCard({
         </div>
         <details className="group/details border-t border-foreground/8 pt-3">
           <summary className="flex cursor-pointer list-none items-center justify-between gap-3 py-1 text-sm font-semibold text-primary outline-none marker:content-none focus-visible:rounded focus-visible:ring-2 focus-visible:ring-ring/50">
-            查看证据、反证与进入方式
+            查看应聘知识、证据与进入方式
             <ChevronDown className="size-4 transition-transform group-open/details:rotate-180" />
           </summary>
           <div className="space-y-5 pt-4">
+            <section className="border border-sky-900/10 bg-sky-50/65 p-4">
+              <h3 className="flex items-center gap-2 text-xs font-semibold tracking-wide text-sky-950">
+                <BookOpenCheck className="size-3.5 text-sky-700" />
+                应聘需要具备的知识
+              </h3>
+              <p className="mt-1.5 text-xs leading-5 text-sky-950/65">
+                {requiredKnowledgeNote}
+              </p>
+              <dl className="mt-3 grid gap-3 sm:grid-cols-2">
+                {cluster.requiredKnowledge.map((knowledge) => (
+                  <div
+                    key={knowledge.area}
+                    className="border-l-2 border-sky-700/35 pl-3"
+                  >
+                    <dt className="text-xs font-semibold text-sky-950">
+                      {knowledge.area}
+                    </dt>
+                    <dd className="mt-1 text-sm leading-6 text-sky-950/72">
+                      {knowledge.detail}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </section>
             <section>
               <h3 className="mb-2 flex items-center gap-2 text-xs font-semibold tracking-wide text-foreground">
                 <CheckCircle2 className="size-3.5 text-emerald-700" />
@@ -391,10 +416,10 @@ export default function RadarPage() {
   const [edition, setEdition] = useState<Edition>('frontier');
   const [query, setQuery] = useState('');
   const [marketFilter, setMarketFilter] = useState<MarketFilter>('new');
-  const [liangFilter, setLiangFilter] =
-    useState<LiangFilter>('recommended');
-  const [refreshStatus, setRefreshStatus] =
-    useState<RadarRefreshStatus | null>(null);
+  const [liangFilter, setLiangFilter] = useState<LiangFilter>('recommended');
+  const [refreshStatus, setRefreshStatus] = useState<RadarRefreshStatus | null>(
+    null,
+  );
   const [refreshing, setRefreshing] = useState(false);
   const [refreshError, setRefreshError] = useState<string | null>(null);
 
@@ -417,7 +442,8 @@ export default function RadarPage() {
         if (payload.refresh) setRefreshStatus(payload.refresh);
       })
       .catch((error: unknown) => {
-        if (error instanceof DOMException && error.name === 'AbortError') return;
+        if (error instanceof DOMException && error.name === 'AbortError')
+          return;
         setRefreshError('仅哨塔启动的本机版可以刷新信源');
       });
     return () => controller.abort();
@@ -458,6 +484,10 @@ export default function RadarPage() {
           cluster.signal,
           cluster.judgment,
           cluster.entry,
+          ...cluster.requiredKnowledge.flatMap((knowledge) => [
+            knowledge.area,
+            knowledge.detail,
+          ]),
           noveltyMeta[cluster.noveltyZone].label,
           fitMeta[cluster.fit].label,
           ...cluster.keywords,
@@ -522,7 +552,8 @@ export default function RadarPage() {
                 : '尚未执行本机刷新')}
             {refreshStatus?.candidateSignals.length ? (
               <span className="ml-2 hidden text-primary lg:inline">
-                候选命中：{refreshStatus.candidateSignals.slice(0, 3).join('、')}
+                候选命中：
+                {refreshStatus.candidateSignals.slice(0, 3).join('、')}
               </span>
             ) : null}
             <span className="ml-2">只生成候选状态，不自动改写研究结论。</span>
@@ -534,7 +565,9 @@ export default function RadarPage() {
             disabled={refreshing}
             onClick={() => void refreshSignals()}
           >
-            <RefreshCw className={cn('size-3.5', refreshing && 'animate-spin')} />
+            <RefreshCw
+              className={cn('size-3.5', refreshing && 'animate-spin')}
+            />
             {refreshing ? '正在更新' : '点击更新信号'}
           </Button>
         </div>
@@ -572,12 +605,17 @@ export default function RadarPage() {
             ))}
           </div>
           <div className="mb-5 flex items-center gap-3 font-mono text-[11px] tracking-[0.14em] text-primary uppercase">
-            <span>第 {String(snapshot.issue).padStart(2, '0')} 期 · {snapshot.edition}</span>
+            <span>
+              第 {String(snapshot.issue).padStart(2, '0')} 期 ·{' '}
+              {snapshot.edition}
+            </span>
             <span className="h-px w-8 bg-primary/35" />
             <span>{snapshot.region}</span>
           </div>
           <h1 className="max-w-4xl font-heading text-[clamp(2.8rem,7vw,6.7rem)] font-semibold leading-[0.92] tracking-[-0.055em] text-foreground">
-            {edition === 'frontier' ? 'FDE 已进第一屏，' : '先从医学 AI 评测切入，'}
+            {edition === 'frontier'
+              ? 'FDE 已进第一屏，'
+              : '先从医学 AI 评测切入，'}
             <span className="mt-2 block text-primary">
               {edition === 'frontier'
                 ? '这次只追新信号。'
@@ -618,7 +656,9 @@ export default function RadarPage() {
           <dl className="mt-10 grid max-w-2xl grid-cols-3 border-y border-foreground/12 py-4">
             <div>
               <dt className="text-xs text-muted-foreground">本期追踪</dt>
-              <dd className="mt-1 font-heading text-3xl font-semibold">{clusters.length}</dd>
+              <dd className="mt-1 font-heading text-3xl font-semibold">
+                {clusters.length}
+              </dd>
             </div>
             <div className="border-l border-foreground/12 pl-5">
               <dt className="text-xs text-muted-foreground">
@@ -782,8 +822,7 @@ export default function RadarPage() {
               显示 {filteredClusters.length} / {clusters.length} 个职业簇
             </span>
             {(query ||
-              filter !==
-                (edition === 'frontier' ? 'new' : 'recommended')) && (
+              filter !== (edition === 'frontier' ? 'new' : 'recommended')) && (
               <button
                 type="button"
                 className="font-medium text-primary underline-offset-4 hover:underline"
@@ -848,7 +887,8 @@ export default function RadarPage() {
               这不是“未来职业名录”
             </h2>
             <p className="mt-4 max-w-xl text-sm leading-7 text-muted-foreground">
-              雷达先判断最近 6—12 个月是否出现跨雇主、行业、地区或层级扩散，再单独判断良能否进入。每项都保留事实、推断和反证。
+              雷达先判断最近 6—12
+              个月是否出现跨雇主、行业、地区或层级扩散，再单独判断良能否进入。每项都保留事实、推断和反证。
             </p>
             <div className="mt-7 border-l-2 border-accent bg-accent/28 px-4 py-3 text-sm leading-6 text-accent-foreground">
               “新职业机会更多”只成立一半：上升空间可能更大，但第一批正式岗位往往更少、标题更乱、经验门槛更高。

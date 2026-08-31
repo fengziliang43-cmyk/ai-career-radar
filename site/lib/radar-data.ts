@@ -1,6 +1,11 @@
 export type Fit = 'direct' | 'stretch' | 'observe' | 'avoid';
 export type Confidence = 'high' | 'medium';
-export type DemandStage = 'seed' | 'forming' | 'scaling' | 'mature' | 'weakening';
+export type DemandStage =
+  | 'seed'
+  | 'forming'
+  | 'scaling'
+  | 'mature'
+  | 'weakening';
 export type NoveltyZone =
   | 'frontier'
   | 'expanding'
@@ -16,6 +21,11 @@ export type RadarSource = {
   label: string;
   url: string;
   kind: 'official' | 'employer' | 'research';
+};
+
+export type RequiredKnowledge = {
+  area: string;
+  detail: string;
 };
 
 export type RadarCluster = {
@@ -38,6 +48,7 @@ export type RadarCluster = {
   facts: string[];
   countercase: string;
   entry: string;
+  requiredKnowledge: RequiredKnowledge[];
   keywords: string[];
   sources: RadarSource[];
 };
@@ -45,11 +56,14 @@ export type RadarCluster = {
 export const snapshot = {
   issue: 2,
   edition: '前沿修正版',
-  updatedAt: '2026-08-29',
+  updatedAt: '2026-08-31',
   signalWindow: '最近信号 2026-07-21—2026-08-29',
   region: '全球前沿 + 中国入口',
   mode: '人工研究快照',
 };
+
+export const requiredKnowledgeNote =
+  '综合当前代表性岗位样本归纳；用于准备与自查，不代表所有雇主的统一硬门槛。';
 
 export const fitMeta: Record<
   Fit,
@@ -153,6 +167,28 @@ export const clusters: RadarCluster[] = [
       'OpenAI 通用样本通常要求 5 年以上经验，医疗 FDE 要求 6 年以上并理解受监管医疗系统；热度不等于初级入口。',
     entry:
       '先走 AI 产品、评测、PoC、解决方案助理或客户侧交付，积累生产上线与验收，再向 FDE 迁移。',
+    requiredKnowledge: [
+      {
+        area: '生产级软件工程',
+        detail:
+          'Python、JavaScript / TypeScript、前后端 API、SQL、Git、测试与调试，以及云服务、容器、日志和可观测性基础。',
+      },
+      {
+        area: 'LLM 与 Agent 系统',
+        detail:
+          '上下文、结构化输出、工具调用、RAG、Agent 编排、评测与护栏，并能权衡效果、延迟、成本和可靠性。',
+      },
+      {
+        area: '企业集成与交付',
+        detail:
+          '需求发现、技术范围界定、系统架构、数据与权限对接，以及从 PoC、上线、采用到交接的完整流程。',
+      },
+      {
+        area: '领域、安全与合规',
+        detail:
+          '理解客户业务流程、数据隐私、授权、审计和风险控制；医疗方向还需了解 EHR、HL7 / FHIR 与受监管交付。',
+      },
+    ],
     keywords: [
       'FDE',
       'Forward Deployed Engineer',
@@ -214,6 +250,28 @@ export const clusters: RadarCluster[] = [
       '中国同名样本仍少，可能长期藏在产品实习、全栈产品工程或独立开发岗位中；不会调试部署时，不能只靠 Vibe Coding 冒充工程能力。',
     entry:
       '把现有本地 AI 产品升级为可解释、可调试、可部署的作品，并记录真实用户、失败修复和版本迭代。',
+    requiredKnowledge: [
+      {
+        area: '全栈开发基础',
+        detail:
+          'HTML / CSS、JavaScript / TypeScript、React 或同类框架、API、数据库、身份认证，以及独立调试、测试和部署。',
+      },
+      {
+        area: 'AI 应用模式',
+        detail:
+          '模型 API、Prompt、上下文、RAG、结构化输出、工具调用、Agent 工作流和基础评测。',
+      },
+      {
+        area: '产品与交互',
+        detail:
+          '用户问题识别、需求拆解、原型、交互细节、产品指标和快速迭代，能判断什么值得做而不只是把功能写出来。',
+      },
+      {
+        area: 'AI Coding 工程纪律',
+        detail:
+          '熟悉 Cursor、Codex 或 Claude Code 等工作流，同时掌握版本控制、代码审查、错误定位、安全与质量验证。',
+      },
+    ],
     keywords: [
       'AI Product Engineer',
       'AI 产品工程师',
@@ -265,6 +323,28 @@ export const clusters: RadarCluster[] = [
       '当前中国一手证据主要来自百度，可能是公司内部命名；尚不能宣称全国放量。',
     entry:
       '作品从单轮回答评测升级到多步任务：完成率、成本、记忆、工具调用、异常恢复和人工接管。',
+    requiredKnowledge: [
+      {
+        area: 'Agent 运行机制',
+        detail:
+          '规划、记忆、工具调用、Skill、多步任务、上下文管理、轨迹记录和人工接管的基本机制。',
+      },
+      {
+        area: '长程任务评测',
+        detail:
+          '测试集、Rubric、完成率、记忆连贯性、成本、延迟、异常恢复与失败归因，能把模糊体验变成可测指标。',
+      },
+      {
+        area: '策略与产品方法',
+        detail:
+          '需求拆解、Skill 功能逻辑与调用策略、方案文档、优先级、上线复盘，以及算法、工程、测试间的协作流程。',
+      },
+      {
+        area: '数据分析基础',
+        detail:
+          '表格、SQL 或 Python 的基础分析，理解抽样、对照实验、趋势与负样本分类，并能输出可执行的评测报告。',
+      },
+    ],
     keywords: [
       'Agent Evals Product',
       'Agent 策略 PM',
@@ -316,6 +396,28 @@ export const clusters: RadarCluster[] = [
       '代表性岗位要求 Python、统计、实验设计和工程框架；手工评测表不能替代自动化能力。',
     entry:
       '先从 Agent 评测产品或医疗评测进入，再补 Python、日志分析、自动 grader 和最小评测 harness。',
+    requiredKnowledge: [
+      {
+        area: 'Python 与评测工程',
+        detail:
+          'Python、API、JSON / JSONL、Git、自动化测试、数据处理和可视化，能搭建可重复运行的评测脚本或框架。',
+      },
+      {
+        area: '评测方法',
+        detail:
+          'Benchmark、消融实验、人工评测、LLM-as-a-judge、环境反馈、评分校准和评测者一致性。',
+      },
+      {
+        area: 'Agent 环境与轨迹',
+        detail:
+          '记忆、规划、工具调用、反思、模拟环境、沙箱、轨迹日志、失败重放和自动 Grader。',
+      },
+      {
+        area: '统计与误差分析',
+        detail:
+          '抽样、置信区间、显著性、分层对比、错误分类和回归测试，能从行为日志定位系统瓶颈。',
+      },
+    ],
     keywords: [
       'Agent Evaluation Engineer',
       'Evals Engineer',
@@ -370,8 +472,29 @@ export const clusters: RadarCluster[] = [
     ],
     countercase:
       '岗位要求机器学习、强化学习、训练系统和强工程能力，市场容量可能长期集中在少数实验室。',
-    entry:
-      '只观察，不为它暂停当前求职或从零投入完整训练栈。',
+    entry: '只观察，不为它暂停当前求职或从零投入完整训练栈。',
+    requiredKnowledge: [
+      {
+        area: '机器学习基础',
+        detail:
+          '概率统计、线性代数、优化、深度学习、Transformer、Tokenization、损失函数和模型推理。',
+      },
+      {
+        area: '后训练方法',
+        detail:
+          'SFT、偏好数据、奖励模型、RLHF、DPO、GRPO、强化学习与数据配比，理解各方法解决什么行为问题。',
+      },
+      {
+        area: 'Agent 训练信号',
+        detail:
+          '任务环境、Rollout、Grader、工具使用、长上下文、失败轨迹，以及离线评测与在线行为之间的关系。',
+      },
+      {
+        area: '训练系统与研究',
+        detail:
+          'Python、PyTorch 或 JAX、GPU / 分布式训练、数据流水线、实验设计、消融、复现和结果解释。',
+      },
+    ],
     keywords: [
       'Agent Post-Training',
       'Production Model Post-Training',
@@ -428,6 +551,28 @@ export const clusters: RadarCluster[] = [
       '样本多为资深企业岗位，可能长期与传统 Solutions Architect 标题并存。',
     entry:
       '先积累医疗 AI 场景发现、方案表达、PoC、评测与验收，再向医疗 Applied AI / Solutions 迁移。',
+    requiredKnowledge: [
+      {
+        area: '企业技术架构',
+        detail:
+          '云、网络、IAM、API、事件与数据系统、可观测性、SLA、安全边界和高可用基础。',
+      },
+      {
+        area: '生成式 AI 方案设计',
+        detail:
+          '模型选择、Prompt、RAG、微调、工具调用、Agent、评测、护栏，以及质量、成本和延迟权衡。',
+      },
+      {
+        area: '集成与生产化',
+        detail:
+          '现状调研、数据分类、遗留系统集成、PoC、上线标准、监控、回滚和组织采用流程。',
+      },
+      {
+        area: '咨询与领域表达',
+        detail:
+          '把业务目标转成技术方案和非功能要求，能写架构文档，并向管理者、工程师、法务和领域专家解释取舍。',
+      },
+    ],
     keywords: [
       'Applied AI Architect',
       'Applied AI Engineer',
@@ -479,6 +624,28 @@ export const clusters: RadarCluster[] = [
       '强证据主要来自前沿公司，且不少岗位要求多年技术支持、客户成功或行业经验。',
     entry:
       '先找医疗 AI 产品支持、解决方案、产品运营与验收岗位，积累采用指标和真实工作流结果。',
+    requiredKnowledge: [
+      {
+        area: 'AI 产品基础',
+        detail:
+          '模型能力与限制、Prompt、RAG、Agent、评测、隐私和安全，能判断客户问题是否适合用 AI 解决。',
+      },
+      {
+        area: '集成与排障',
+        detail:
+          'API / SDK、身份认证、连接器、日志和问题复现基础，能与客户工程团队定位接入与效果问题。',
+      },
+      {
+        area: '采用与变革管理',
+        detail:
+          '用例筛选、工作流重构、培训、上线辅导、反馈闭环和组织推动，而不只是回答产品怎么用。',
+      },
+      {
+        area: '领域与成功指标',
+        detail:
+          '理解目标行业流程与合规边界，并会定义激活、采用、任务结果、质量、成本和节省时间等指标。',
+      },
+    ],
     keywords: [
       'AI Success Engineer',
       'AI Support Engineer',
@@ -535,6 +702,28 @@ export const clusters: RadarCluster[] = [
       'OpenAI 样本通常要求 7 年以上安全、风控、调查或信任安全经验；中国初级证据不足。',
     entry:
       '在医疗评测作品中加入风险分级、升级机制、适用边界和高风险失败案例，不单独转轨。',
+    requiredKnowledge: [
+      {
+        area: 'Agent 架构与失效模式',
+        detail:
+          '目标、规划、记忆、检索、连接器、Computer Use、多 Agent 协作，以及自治系统如何产生意外行为。',
+      },
+      {
+        area: '安全与滥用分析',
+        detail:
+          'Prompt Injection、越权、数据外泄、欺诈与社会工程、红队、评测、事件调查和威胁建模。',
+      },
+      {
+        area: '风险治理',
+        detail:
+          '风险分类、严重度、证据与置信度、责任人、缓解措施、剩余风险、发布准备度和升级机制。',
+      },
+      {
+        area: '情报与分析工具',
+        detail:
+          '弱信号、假设检验、多源证据综合，以及 SQL、Python、仪表盘和面向决策者的简洁风险报告。',
+      },
+    ],
     keywords: [
       'Agentic Risk Analyst',
       'Safeguards',
@@ -586,6 +775,28 @@ export const clusters: RadarCluster[] = [
       '目前只有单一强样本，可能最终仍被吸收进身份、安全或产品设计岗位。',
     entry:
       '不转轨；在医疗 Agent 作品中加入权限模型、敏感动作确认、审计记录和人工接管。',
+    requiredKnowledge: [
+      {
+        area: '身份与访问控制',
+        detail:
+          '认证与授权、MFA、账户恢复、会话与设备、RBAC / ABAC、OAuth / OIDC 和最小权限原则。',
+      },
+      {
+        area: 'Agent 委托与信任',
+        detail:
+          'Agent 代表谁、授权范围、凭证生命周期、人—Agent 与 Agent—Agent 信任、审计和可追责性。',
+      },
+      {
+        area: '安全体验设计',
+        detail:
+          '权限说明、知情同意、敏感动作确认、风险提示、错误恢复和人工接管，在安全与低摩擦之间取舍。',
+      },
+      {
+        area: '复杂产品设计',
+        detail:
+          '信息架构、交互设计、原型、可用性测试、无障碍、企业管理后台和跨产品设计系统。',
+      },
+    ],
     keywords: [
       'Agent Identity',
       'Agent Trust',
@@ -637,6 +848,28 @@ export const clusters: RadarCluster[] = [
       '只写“AI 产品”而没有工具、执行、环境、评测和结果责任的岗位不属于本簇。',
     entry:
       '作品明确展示需求、Agent 与工具分工、失败处理、验收指标、权限和复盘。',
+    requiredKnowledge: [
+      {
+        area: 'Agent 技术基础',
+        detail:
+          '模型与上下文、RAG、记忆、工具与连接器、编排、多 Agent 协作，以及各能力的边界。',
+      },
+      {
+        area: '工作流产品设计',
+        detail:
+          '任务拆解、模型与工具分工、状态管理、重试、降级、人工接管、权限和异常恢复。',
+      },
+      {
+        area: 'Agent 评测指标',
+        detail:
+          '任务成功率、人工介入率、完成时间、成本、延迟、质量、安全和基于轨迹的失败归因。',
+      },
+      {
+        area: '技术产品方法',
+        detail:
+          'API / SDK、JSON、日志和 SQL 基础，以及用户研究、PRD、路线图、实验、发布和跨团队推进。',
+      },
+    ],
     keywords: [
       'Agent Product Manager',
       'Agent 产品经理',
@@ -682,8 +915,7 @@ export const clusters: RadarCluster[] = [
       '临床医学、模型评测、知识质量和可追溯验证四项优势在同一岗位汇合，是当前最有差异化的主入口。',
     signal:
       '医疗 FDE、生命科学 AI Success、Biosciences Support 与中国医学模型评测样本同时存在。',
-    judgment:
-      '这是良最有差异化的入口，但不再因个人适配而占据雷达第一位。',
+    judgment: '这是良最有差异化的入口，但不再因个人适配而占据雷达第一位。',
     facts: [
       'OpenAI 已把 FDE 细分到医疗，并要求客户特定 benchmark、验收和上线准备度。',
       'OpenAI 当前存在医疗与生命科学 AI Success、Biosciences AI Support。',
@@ -693,6 +925,33 @@ export const clusters: RadarCluster[] = [
       '领域价值不等于初级岗位放量；低价医学标注与资深医疗部署岗位之间仍有明显断层。',
     entry:
       '做一份无患者隐私的医疗 AI 评测包，并逐步升级为多步医疗 Agent 工作流验收。',
+    requiredKnowledge: [
+      {
+        area: '临床与循证医学',
+        detail:
+          '临床理论、诊疗思维、鉴别诊断、指南与专家共识、中英文文献检索，以及证据等级与适用边界。',
+      },
+      {
+        area: '模型评测方法',
+        detail:
+          'Benchmark、Rubric、金标准、人工与自动评测、LLM-as-a-judge、错误归因和多模型多版本回归。',
+      },
+      {
+        area: '医学统计与测量',
+        detail:
+          '敏感度、特异度、Precision、Recall、F1、AUC、校准、Cohen’s Kappa、置信区间、显著性和偏倚。',
+      },
+      {
+        area: '医学数据质量',
+        detail:
+          '标注规范、样本筛选、数据来源、质检、医学风险分类，以及问答、报告解读、用药、多模态和 RAG 场景。',
+      },
+      {
+        area: '隐私、合规与临床安全',
+        detail:
+          '去标识化、患者隐私、人工复核、高风险升级、适用范围、审计证据和医疗产品上线验收边界。',
+      },
+    ],
     keywords: [
       '医疗 AI 评测',
       '医学大模型',
@@ -738,8 +997,7 @@ export const clusters: RadarCluster[] = [
       '进入门槛与现有经历最接近，可作为短期求职入口；但它已是成熟基线，不应替代对更新职业的能力投资。',
     signal:
       '近期岗位继续采购模型说明、调用数据、客户接入、文档、知识库和 Agent 效果评估，但任务已趋常规。',
-    judgment:
-      '保留为现实求职基线，不再放在新职业首页前列。',
+    judgment: '保留为现实求职基线，不再放在新职业首页前列。',
     facts: [
       '百度近期模型平台运营覆盖模型能力、调用数据、客户接入、文档与竞品研究。',
       '近期业务运营平台产品岗位包含模型与 Agent 效果评估闭环。',
@@ -747,8 +1005,29 @@ export const clusters: RadarCluster[] = [
     ],
     countercase:
       '仅上传文档、维护 FAQ 或做换皮增长的岗位价值低；必须对模型效果、来源或用户反馈负责。',
-    entry:
-      '可直接投，但简历必须突出效果评估、来源追溯、用户反馈和版本复盘。',
+    entry: '可直接投，但简历必须突出效果评估、来源追溯、用户反馈和版本复盘。',
+    requiredKnowledge: [
+      {
+        area: 'RAG 工作原理',
+        detail:
+          '文档切分、Embedding、向量索引、混合检索、Rerank、上下文组装、引用和常见幻觉来源。',
+      },
+      {
+        area: '知识治理',
+        detail:
+          '信源权威性、元数据、分类体系、版本与时效、去重、权限、审计和内容更新流程。',
+      },
+      {
+        area: '效果评估',
+        detail:
+          '检索召回、答案忠实度、覆盖率、黄金问题集、人工质检、A/B 测试和版本回归。',
+      },
+      {
+        area: '运营与数据基础',
+        detail:
+          'API、SQL、表格、日志与监控基础，以及客户接入、文档、反馈分析和问题闭环。',
+      },
+    ],
     keywords: [
       'AI 产品运营',
       '模型运营',
@@ -800,6 +1079,28 @@ export const clusters: RadarCluster[] = [
       '少数独立岗位仍会存在；如果它拥有领域标准、质量责任、评测闭环或产品所有权，应重新拆出，而不是一概否定。',
     entry:
       'Prompt、标注和数字内容只作为 AI 产品、评测、运营或领域质量岗位中的技能表达。',
+    requiredKnowledge: [
+      {
+        area: '模型行为基础',
+        detail:
+          '上下文、指令层级、采样、结构化输出、工具调用、模型边界和常见失败，不能只会堆提示词模板。',
+      },
+      {
+        area: 'Prompt 与评测工程',
+        detail:
+          '模板与版本管理、测试集、Rubric、A/B 对照和回归评测，用数据证明改动而不是凭单个案例。',
+      },
+      {
+        area: '数据与内容质量',
+        detail:
+          '标注规范、抽检、版权、隐私和事实核验；数字人方向还要懂 ASR / TTS、脚本、音视频和口型链路。',
+      },
+      {
+        area: '领域与产品结果',
+        detail:
+          '必须叠加某个行业知识、业务流程、用户指标或自动化交付能力，否则独立头衔很容易被其他岗位吸收。',
+      },
+    ],
     keywords: [
       '提示词工程师',
       'AI 训练师',
