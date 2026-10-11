@@ -60,6 +60,8 @@ sudo systemctl restart ai-career-radar
 sudo systemctl reload nginx
 ```
 
+实际发布时（`20261011-v2`）还做了两件事，下次照做：第 3 步前先记下 `/etc/nginx/quant.htpasswd` 和其他站点配置的 SHA-256，切换后用 `sha256sum -c` 确认没变；整段命令放进脚本，用 `trap` 在任一步失败时自动执行下面的回滚。
+
 ## 验收
 
 ```sh
