@@ -6,12 +6,14 @@
 - 同一报告的转述不算独立证据；尽量回到原始报告或官方页面。
 - 招聘样本用于识别任务与需求，不把样本量很小的结果外推为整个市场。
 
-## 本地手动刷新白名单
+## 本地职业发现白名单
 
-- 代码内固定检查 OpenAI Forward Deployed 搜索、OpenAI Agent 搜索、Anthropic Careers、百度实习职位和 Scale FDE 负责人职位，共 5 个一手公开页面。
-- 刷新只记录检查时间、HTTP 成功失败和预设职业词命中，不保存页面正文，不接受用户输入 URL，不使用账号、Cookie 或招聘平台登录态。
-- 2026-08-29 实测 3/5 可达；两个 OpenAI 搜索页返回 HTTP 403。该结果只说明本次技术可达性，不代表职业信号消失。
+- 固定 4 个请求地址：[OpenAI Ashby 公开职位接口](https://api.ashbyhq.com/posting-api/job-board/openai)、[Anthropic Greenhouse 公开职位接口](https://api.greenhouse.io/v1/boards/anthropic/jobs?content=true)、[Scale Greenhouse 公开职位接口](https://api.greenhouse.io/v1/boards/scaleai/jobs?content=true)、[百度实习列表](https://talent.baidu.com/jobs/list?recruitType=INTERN)。状态仍显示 5 项检查（OpenAI FDE／部署、OpenAI Agent、Anthropic、百度、Scale），OpenAI 两项只请求一次。发现使用招聘列表中的全部相关岗位，不局限于预设信号词；百度仅覆盖当前页。
+- 保存必要岗位标题、链接、地区、来源发布日期、观察日期与正文中命中的知识词，去除同一雇主的重复岗位及普通招聘、销售等岗位；不保存完整职位正文，不接受用户输入 URL，不使用账号、Cookie 或登录态。自动任务归并与知识词是核验线索，不等于确认新职业、统一门槛或净新增岗位数量。
+- 2026-10-11 本机实测 5/5 成功：OpenAI FDE／部署相关 40 项、Agent 相关 23 项，Scale FDE 相关 13 项。OpenAI 原搜索页自动请求仍返回 403；Scale 原单岗地址已返回通用招聘页面，改为有效的职位列表。使用官方公开接口恢复检查，不绕过访问限制。
+- 依据：[Ashby Job Postings API](https://developers.ashbyhq.com/docs/public-job-posting-api)；OpenAI 官网 [Context Research 岗位](https://openai.com/careers/agent-post-training-context-research-san-francisco/) 的申请入口指向 `jobs.ashbyhq.com/openai/`；[Scale 官网](https://scale.com/careers) 的职位加载代码调用上述 Greenhouse 地址。
 - 候选命中必须回到本登记表和报告人工核验后，才能进入 `watchlist.md` 与网站数据快照。
+- 2026-10-11 完整职业发现实测：5/5 检查成功，28 个候选方向、464 条去重岗位样本，20 个方向出现于多家雇主。代表岗位核验结果显示在自动发现首页；其余样本仍待核验；岗位数会随来源变动。来源失败时旧样本保留并标记，成功来源本次未见的样本退出当前列表，不据此判定职业退潮。
 
 ## 中国制度与职业标准
 
@@ -74,3 +76,7 @@
 | [百度：Agent 评估工程师实习生](https://talent.baidu.com/jobs/detail/INTERN/a0bbc449-854f-421c-bfaf-1a5be906f86e) | 2026-07-21 | 2026-08-29 | 北京 | 记忆、规划、工具调用、反思、LLM-as-a-judge 与 Agent Benchmark 被组合成独立评估岗位 | 计算机相关专业与 Python 门槛高 |
 | [百度：评测产品实习生](https://talent.baidu.com/jobs/detail/INTERN/a7487847-e649-4b60-96cf-faa90f6f8b34) | 2026-07-21 | 2026-08-29 | 北京 | 长程任务标准、内置 Skill、记忆连续性、成本和效果复盘成为 Agent 评测产品任务 | 单一雇主样本；职位页可能动态下线 |
 | [百度：当前实习职位列表](https://talent.baidu.com/jobs/list?recruitType=INTERN) | 2026-08-17 至 2026-08-27 | 2026-08-29 | 中国多地 | 新增 DuMate 策略 PM、Agent 开发、AI 测试开发、解决方案架构、Agent 效果评估等近期样本 | 动态列表；只用于识别任务与日期，不把当前条数当长期规模 |
+
+## 代表岗位核验登记
+
+2026-10-11 的任务核验摘要、原始职位链接、地区、日期与正文哈希保存在 `site/lib/radar-reviews.ts`，仅匹配当前岗位正文的样本显示已核验。其余岗位保留待核验；跨雇主出现、新标题或重新发布不等于新职业成立。
