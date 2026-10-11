@@ -20,7 +20,7 @@
 - 刷新：服务运行期间数据超过 24 小时自动刷新（良 2026-10-11 授权每天一次）；页面打开时超过 6 小时也刷新；手动刷新 5 分钟内共用结果。
 - 本机：[[../后台雷达|哨塔]]用 `node server.mjs --host 127.0.0.1 --port 3001` 启停；启动器同日改过，哨塔的 lint、类型检查、构建和测试通过，实测停止、启动、重复启动正常。
 - 服务器：2026-10-11 良明确授权后，已发布新版 `20261011-v2` 至 `https://quant.liang111.top/careers/`。25 项测试通过；服务器 4/4 信源成功、1110 个 AI 岗位；7 条页面、资源与 API 匿名路径均 401。仅回环监听，日志无启动错误，账号与其他站点配置哈希未变、量化服务正常。首次就绪检查过早曾自动回滚，补充等待后重新发布成功；旧版 `20261011-final` 和状态文件完整保留，回滚配置见 `site/deploy/README.md`。本地新版详情渲染通过，登录后的外部线上浏览器画面未核验。
-- 源码仓库 [fengziliang43-cmyk/ai-career-radar](https://github.com/fengziliang43-cmyk/ai-career-radar) 已公开（2026-08-29 授权）；本地改动未 push，push 前先核对差异并取得授权。
+- 源码仓库 [fengziliang43-cmyk/ai-career-radar](https://github.com/fengziliang43-cmyk/ai-career-radar) 已公开（2026-08-29 授权）；2026-10-11 良同意后推送了重写版与部署记录。以后 push 前仍先核对差异并取得授权。
 
 重写前的完整项目卡：[[archive/project-history/AI新职业雷达|历史记录]]。
 
