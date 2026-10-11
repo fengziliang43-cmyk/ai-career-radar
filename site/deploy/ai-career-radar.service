@@ -1,0 +1,43 @@
+[Unit]
+Description=AI career radar (page API and daily job refresh)
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=60
+StartLimitBurst=3
+
+[Service]
+Type=simple
+DynamicUser=yes
+StateDirectory=ai-career-radar
+StateDirectoryMode=0700
+WorkingDirectory=/var/lib/ai-career-radar
+ExecStart=/usr/bin/node /srv/ai-career-radar/current/server.mjs --host 127.0.0.1 --port 18991 --origin https://quant.liang111.top --state-dir /var/lib/ai-career-radar
+Environment=NODE_ENV=production
+Environment=RADAR_FETCH_TRANSPORT=curl
+Restart=on-failure
+RestartSec=5
+UMask=0077
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectProc=invisible
+RestrictSUIDSGID=yes
+RestrictNamespaces=yes
+LockPersonality=yes
+CapabilityBoundingSet=
+AmbientCapabilities=
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+MemoryMax=384M
+CPUQuota=25%
+TasksMax=32
+Nice=10
+LimitNOFILE=256
+
+[Install]
+WantedBy=multi-user.target

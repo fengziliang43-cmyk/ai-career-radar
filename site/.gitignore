@@ -1,40 +1,6 @@
-# dependencies
-/node_modules
-/.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
-
-# testing
-/coverage
-
-# next.js
-/.next/
-/.vinext/
-/out/
-
-# misc
-.DS_Store
-*.pem
-
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-
-# local environment
-.env*
-
-# deployment and generated files
-.vercel
-next-env.d.ts
-/dist/
-/.wrangler/
-/outputs/
-/work/
+# 运行状态（职位快照与历史），每台机器各自生成
 /.local/
-*.tsbuildinfo
+# 旧版生成物与临时目录
+/node_modules/
+/work/
+.DS_Store

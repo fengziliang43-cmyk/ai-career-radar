@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="description" content="追踪 AI 催生的新职业：哪些在被反复招聘，要会什么，从哪里切入。" />
+    <title>AI 新职业雷达</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="styles.css" />
+    <script type="module" src="app.js"></script>
+  </head>
+  <body>
+    <header class="masthead">
+      <div class="wrap">
+        <div class="masthead-row">
+          <div class="brand">
+            <h1>AI 新职业雷达</h1>
+            <p>追踪 AI 催生的新职业：哪些在被反复招聘，要会什么，从哪里切入。</p>
+          </div>
+          <div class="status">
+            <p class="status-text" id="status-text" aria-live="polite">正在读取职位数据…</p>
+            <button class="button" type="button" id="refresh" data-action="refresh">刷新</button>
+          </div>
+        </div>
+        <p class="summary" id="summary"></p>
+        <div id="alerts"></div>
+      </div>
+    </header>
+
+    <main>
+      <section class="block wrap" aria-labelledby="changes-title">
+        <div class="block-head">
+          <h2 id="changes-title">最近 7 天</h2>
+        </div>
+        <div class="changes" id="changes"></div>
+      </section>
+
+      <section class="block wrap" aria-labelledby="clusters-title">
+        <div class="block-head">
+          <h2 id="clusters-title">13 个职业簇</h2>
+        </div>
+        <div class="controls">
+          <div class="lens" role="group" aria-label="排序视角">
+            <button type="button" data-action="lens" data-lens="market" aria-pressed="true">市场前沿</button>
+            <button type="button" data-action="lens" data-lens="liang" aria-pressed="false">良的适配</button>
+          </div>
+          <label class="search">
+            <span class="visually-hidden">搜索职业簇</span>
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <circle cx="8.5" cy="8.5" r="5.5" />
+              <path d="m13 13 4 4" stroke-linecap="round" />
+            </svg>
+            <input id="search" type="search" placeholder="搜职业、技能或岗位，如 FDE、Python、医疗" autocomplete="off" />
+          </label>
+        </div>
+        <p class="lens-note" id="lens-note"></p>
+        <ol class="clusters" id="clusters"></ol>
+      </section>
+
+      <section class="block wrap" aria-labelledby="others-title">
+        <div class="block-head">
+          <h2 id="others-title">职业簇之外的 AI 岗位</h2>
+        </div>
+        <p class="lede" id="others-lede">
+          这些岗位没有对上 13 个职业簇，大多是 AI 公司常规的研究、工程和基础设施岗位。近两周新出现的职位名单独列出，值得追踪的按研究流程写进观察池。
+        </p>
+        <div id="others"></div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="wrap" id="footer"></div>
+    </footer>
+  </body>
+</html>
