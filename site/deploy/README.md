@@ -68,6 +68,11 @@ for p in /careers/ /careers/app.js /careers/api/state /careers/api/refresh; do
   curl -s --resolve quant.liang111.top:443:127.0.0.1 -o /dev/null -w "%{http_code} $p\n" "https://quant.liang111.top$p"
 done
 # 服务只在回环地址监听；启动 5 秒后会自动读取一次职位
+# restart 返回时进程可能尚未完成监听，最多等待 10 秒
+for attempt in 1 2 3 4 5 6 7 8 9 10; do
+  curl -fsS -H 'Host: quant.liang111.top' http://127.0.0.1:18991/api/state -o /dev/null && break
+  sleep 1
+done
 sudo ss -lntp | grep 18991
 sudo journalctl -u ai-career-radar -n 20 --no-pager
 sudo ls -l /var/lib/ai-career-radar/
@@ -92,3 +97,5 @@ sudo nginx -t && sudo systemctl daemon-reload && sudo systemctl restart ai-caree
 
 - 2026-10-11 首次部署 Codex 版 `20261011-final`（`bd2916f` 之前的提交里有当时的部署脚本与说明）。
 - 2026-10-11 Claude 重写为零依赖版本：页面变为纯静态文件，接口改为 `api/state` 与 `api/refresh`，服务进程内每天自动刷新一次。
+
+- 2026-10-11 已按良明确授权发布 `20261011-v2`：25 项测试通过，包 SHA-256 `19599695e47be45f9323b3754723ac46cd1f985d82aeea767cc76e0f5bb4560d` 本机与服务器一致。4/4 信源成功、1110 个 AI 岗位，匿名页面/JS/CSS/数据模块/共享模块/两个接口均 401。服务正常且仅回环监听，其他站点与账号文件校验未变；回滚备份 `/home/admin/career-radar-stage-20261011-v2`，目标 `20261011-final`。
