@@ -109,23 +109,54 @@ test('every source has a unique id, a group and an https job link prefix', () =>
   }
 });
 
-test('Lever: title, all locations, team and created date', () => {
-  const body = JSON.stringify([
-    {
-      id: 'p1',
-      text: 'Forward Deployed Software Engineer',
-      hostedUrl: 'https://jobs.lever.co/palantir/p1',
-      categories: { team: 'Dev', allLocations: ['London, UK', 'New York, NY'] },
-      createdAt: Date.parse('2026-09-30T00:00:00Z'),
-      descriptionPlain: 'A world-changing company.',
-      lists: [{ text: 'Core Responsibilities', content: '<li>Ship Python services</li>' }],
-    },
-  ]);
-  const [job] = parseSource(source('palantir'), body);
-  assert.equal(job.location, 'London, UK · New York, NY');
-  assert.equal(job.team, 'Dev');
-  assert.equal(job.publishedAt, '2026-09-30T00:00:00.000Z');
-  assert.match(job.description, /Ship Python services/);
+test('Lever page: postings with team headings, links and locations', () => {
+  const posting = (id, title, location) =>
+    `<div class="posting" data-qa-posting-id="${id}"><div class="posting-apply" data-qa="btn-apply"><a href="https://jobs.lever.co/palantir/${id}" class="posting-btn-submit">Apply</a></div><a class="posting-title" href="https://jobs.lever.co/palantir/${id}"><h5 data-qa="posting-name">${title}</h5><div class="posting-categories"><span href="#" class="sort-by-commitment posting-category small-category-label commitment">Full-time</span><span href="#" class="sort-by-location posting-category small-category-label location">${location}</span></div></a></div>`;
+  const id1 = 'ac978161-6f46-4f6b-ad9e-a258e642751c';
+  const id2 = '6ed76ce8-4156-4b60-b120-403538bd66cd';
+  const body = `<div class="postings-wrapper"><div class="postings-group"><div class="posting-category-title large-category-label">Dev</div>${posting(id1, 'Forward Deployed Software Engineer', 'London, United Kingdom')}</div><div class="postings-group"><div class="posting-category-title large-category-label">Business &amp; Ops</div>${posting(id2, 'Deployment Strategist', 'New York, NY')}</div></div>`;
+  const jobs = parseSource(source('palantir'), body);
+  assert.deepEqual(
+    jobs.map(({ id, title, url, location, team }) => ({ id, title, url, location, team })),
+    [
+      { id: id1, title: 'Forward Deployed Software Engineer', url: `https://jobs.lever.co/palantir/${id1}`, location: 'London, United Kingdom', team: 'Dev' },
+      { id: id2, title: 'Deployment Strategist', url: `https://jobs.lever.co/palantir/${id2}`, location: 'New York, NY', team: 'Business & Ops' },
+    ],
+  );
+  // A changed page layout fails the source instead of emptying it.
+  assert.throws(() => parseSource(source('palantir'), '<html>maintenance</html>'), SourceError);
+  assert.throws(
+    () => parseSource(source('palantir'), body.replace('<h5 data-qa="posting-name">', '<h4>')),
+    SourceError,
+  );
+});
+
+test('dropped connections and 5xx get one retry; 4xx and repeated failures do not', async () => {
+  const board = JSON.stringify({ jobs: [] });
+  let calls = 0;
+  const flaky = async () => {
+    calls++;
+    if (calls === 1) throw new SourceError('连接失败', null, { transient: true });
+    return board;
+  };
+  assert.deepEqual(await loadSource(source('anthropic'), flaky, { retryDelay: 0 }), []);
+  assert.equal(calls, 2);
+
+  calls = 0;
+  const missing = async () => {
+    calls++;
+    throw new SourceError('HTTP 404', 404);
+  };
+  await assert.rejects(loadSource(source('anthropic'), missing, { retryDelay: 0 }), /HTTP 404/);
+  assert.equal(calls, 1);
+
+  calls = 0;
+  const down = async () => {
+    calls++;
+    throw new SourceError('HTTP 503', 503, { transient: true });
+  };
+  await assert.rejects(loadSource(source('anthropic'), down, { retryDelay: 0 }), /HTTP 503/);
+  assert.equal(calls, 2);
 });
 
 test('Tencent: builds https detail links and reads Chinese dates', () => {
@@ -199,7 +230,7 @@ test('paginated sources read every page with fixed queries, then stop', async ()
     calls.push({ url, method: options.method, body: JSON.parse(options.body) });
     return page(calls.length);
   };
-  const jobs = await loadSource(source('netease'), fetchText, { pause: 0 });
+  const jobs = await loadSource(source('netease'), fetchText, { pause: 0, retryDelay: 0 });
   assert.equal(jobs.length, 5);
   assert.deepEqual(calls.map((call) => call.body), [
     { currentPage: 1, pageSize: 200 },
@@ -211,9 +242,9 @@ test('paginated sources read every page with fixed queries, then stop', async ()
 
 test('a list longer than expected fails the source instead of truncating it', async () => {
   const endless = async () => JSON.stringify({ code: 200, data: { pages: 999, list: [{ id: 1, name: 'AI产品经理' }] } });
-  await assert.rejects(loadSource(source('netease'), endless, { pause: 0 }), SourceError);
+  await assert.rejects(loadSource(source('netease'), endless, { pause: 0, retryDelay: 0 }), SourceError);
   await assert.rejects(
-    loadSource(source('tencent'), async () => JSON.stringify({ Code: 403, Data: null }), { pause: 0 }),
+    loadSource(source('tencent'), async () => JSON.stringify({ Code: 403, Data: null }), { pause: 0, retryDelay: 0 }),
     SourceError,
   );
 });

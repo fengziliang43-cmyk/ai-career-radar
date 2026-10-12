@@ -19,9 +19,9 @@
 在本机 `site/` 目录：
 
 ```sh
-node --test
+node --test 'test/*.test.mjs'
 VERSION=$(date +%Y%m%d)-v2
-tar -czf "/tmp/ai-career-radar-$VERSION.tar.gz" --exclude .local --exclude work --exclude test --exclude .DS_Store .
+tar -czf "/tmp/ai-career-radar-$VERSION.tar.gz" --exclude .local --exclude work --exclude test --exclude '*.tar.gz' --exclude .DS_Store .
 shasum -a 256 "/tmp/ai-career-radar-$VERSION.tar.gz"
 ```
 
@@ -101,3 +101,5 @@ sudo nginx -t && sudo systemctl daemon-reload && sudo systemctl restart ai-caree
 - 2026-10-11 Claude 重写为零依赖版本：页面变为纯静态文件，接口改为 `api/state` 与 `api/refresh`，服务进程内每天自动刷新一次。
 
 - 2026-10-11 已按良明确授权发布 `20261011-v2`：25 项测试通过，包 SHA-256 `19599695e47be45f9323b3754723ac46cd1f985d82aeea767cc76e0f5bb4560d` 本机与服务器一致。4/4 信源成功、1110 个 AI 岗位，匿名页面/JS/CSS/数据模块/共享模块/两个接口均 401。服务正常且仅回环监听，其他站点与账号文件校验未变；回滚备份 `/home/admin/career-radar-stage-20261011-v2`，目标 `20261011-final`。
+
+- 2026-10-12：`4dde347` 候选 `20261012-v3`（35 项测试通过，包 SHA-256 `16e117b063cd2026032a1273b520771ded31088a3047e94c0ef31c466d02ee27`）未通过 21 来源全成功验收：首次 18/21。按本次授权只切换链接、重启服务，配置保持不变；已自动回滚 `20261011-v2`。备份与失败证据位于 `/home/admin/career-radar-stage-20261012-v3`。Palantir 重测仍连接失败，必须解决服务器完整下载问题后重新发布。

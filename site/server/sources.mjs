@@ -48,13 +48,15 @@ export const SOURCES = [
     fetchUrl: 'https://api.greenhouse.io/v1/boards/scaleai/jobs?content=true',
     pageUrl: 'https://scale.com/careers',
   }),
+  // Lever's JSON API sends ~6 MB uncompressed, too slow from the server; the
+  // hosted list page has the same postings gzipped to ~110 KB (no descriptions).
   {
     id: 'palantir',
     group: '海外 AI 公司',
     employer: 'Palantir',
     label: 'Palantir 全部公开职位',
-    format: 'lever',
-    fetchUrl: 'https://api.lever.co/v0/postings/palantir?mode=json',
+    format: 'lever-page',
+    fetchUrl: 'https://jobs.lever.co/palantir',
     pageUrl: 'https://www.palantir.com/careers/',
     jobUrlPrefix: 'https://jobs.lever.co/palantir/',
     timeoutMs: 30_000,
@@ -139,6 +141,20 @@ export const SOURCES = [
 
 const INVALID = '职位列表格式无法识别';
 const PAGE_PAUSE_MS = 300;
+const RETRY_DELAY_MS = 2_000;
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// One retry for dropped connections, timeouts, 429 and 5xx; nothing else.
+async function fetchOnce(fetchText, url, options, retryDelay) {
+  try {
+    return await fetchText(url, options);
+  } catch (error) {
+    if (!(error instanceof SourceError && error.transient)) throw error;
+    if (retryDelay) await sleep(retryDelay);
+    return fetchText(url, options);
+  }
+}
 
 /**
  * Paginated career sites. `request(page)` builds one fixed query; `rows(body)`
@@ -219,17 +235,22 @@ const PAGERS = {
  *   location: string, team: string, publishedAt: string | null,
  *   description: string}>>}
  */
-export async function loadSource(source, fetchText, { pause = PAGE_PAUSE_MS } = {}) {
+export async function loadSource(
+  source,
+  fetchText,
+  { pause = PAGE_PAUSE_MS, retryDelay = RETRY_DELAY_MS } = {},
+) {
   const pager = PAGERS[source.format];
   if (!pager) {
-    return parseSource(source, await fetchText(source.fetchUrl, { timeoutMs: source.timeoutMs }));
+    const body = await fetchOnce(fetchText, source.fetchUrl, { timeoutMs: source.timeoutMs }, retryDelay);
+    return parseSource(source, body);
   }
   const jobs = [];
   let seen = 0;
   for (let page = 1; page <= pager.maxPages; page++) {
-    if (page > 1 && pause) await new Promise((resolve) => setTimeout(resolve, pause));
+    if (page > 1 && pause) await sleep(pause);
     const request = pager.request(source, page);
-    const body = await fetchText(request.url, { ...request, timeoutMs: source.timeoutMs });
+    const body = await fetchOnce(fetchText, request.url, { ...request, timeoutMs: source.timeoutMs }, retryDelay);
     let payload;
     try {
       payload = JSON.parse(body);
@@ -245,13 +266,13 @@ export async function loadSource(source, fetchText, { pause = PAGE_PAUSE_MS } = 
   throw new SourceError('职位数超过预期上限');
 }
 
-/** Parse a single-response source (Ashby, Greenhouse, Lever, Baidu list). */
+/** Parse a single-response source (Ashby, Greenhouse, Lever page, Baidu list). */
 export function parseSource(source, body) {
   const rows =
     source.format === 'baidu'
       ? baiduRows(body)
-      : source.format === 'lever'
-        ? jsonArray(body)
+      : source.format === 'lever-page'
+        ? leverPageRows(body)
         : jsonRows(body);
   return toJobs(source, rows);
 }
@@ -272,7 +293,7 @@ export function parsePage(source, body, seen = 0, page = 1) {
 const MAPPERS = {
   ashby: ashbyJob,
   greenhouse: greenhouseJob,
-  lever: leverJob,
+  'lever-page': (raw) => raw,
   baidu: baiduJob,
   tencent: tencentJob,
   meituan: meituanJob,
@@ -303,12 +324,6 @@ function jsonRows(body) {
   const payload = parseJson(body);
   if (!payload || !Array.isArray(payload.jobs)) throw new SourceError(INVALID);
   return payload.jobs;
-}
-
-function jsonArray(body) {
-  const payload = parseJson(body);
-  if (!Array.isArray(payload)) throw new SourceError(INVALID);
-  return payload;
 }
 
 function parseJson(body) {
@@ -350,23 +365,32 @@ function greenhouseJob(raw) {
   };
 }
 
-function leverJob(raw) {
-  const categories = raw.categories ?? {};
-  const locations = Array.isArray(categories.allLocations)
-    ? categories.allLocations
-    : [categories.location];
-  const lists = Array.isArray(raw.lists)
-    ? raw.lists.map((list) => `${text(list?.text)}\n${htmlToText(text(list?.content))}`)
-    : [];
-  return {
-    id: text(raw.id),
-    title: raw.text,
-    url: raw.hostedUrl,
-    location: locations.filter((value) => typeof value === 'string' && value.trim()).join(' · ') || '未注明地区',
-    team: text(categories.team) || text(categories.department),
-    publishedAt: Number.isFinite(raw.createdAt) ? new Date(raw.createdAt).toISOString() : null,
-    description: [text(raw.descriptionPlain), ...lists, text(raw.additionalPlain)].join('\n'),
-  };
+// Lever's hosted list page groups postings under team headings. Each posting
+// carries its id, link, title and location; descriptions are not on this page.
+function leverPageRows(body) {
+  if (!body.includes('postings-wrapper')) throw new SourceError(INVALID);
+  const rows = [];
+  for (const group of body.split('<div class="postings-group">').slice(1)) {
+    const team = decodeEntities(group.match(/class="posting-category-title[^"]*"[^>]*>([^<]*)</)?.[1] ?? '').trim();
+    const postings = group.matchAll(
+      /<div class="posting" data-qa-posting-id="([0-9a-f-]{36})">[\s\S]*?<a class="posting-title" href="([^"]+)"><h5 data-qa="posting-name">([\s\S]*?)<\/h5>([\s\S]*?)<\/a>/g,
+    );
+    for (const [, id, url, title, categories] of postings) {
+      const location = categories.match(/class="[^"]*\blocation\b[^"]*">([^<]*)</)?.[1] ?? '';
+      rows.push({
+        id,
+        title: decodeEntities(title.replace(/<[^>]*>/g, '')).trim(),
+        url: decodeEntities(url),
+        location: decodeEntities(location).trim() || '未注明地区',
+        team,
+        publishedAt: null,
+        description: '',
+      });
+    }
+  }
+  const listed = (body.match(/data-qa-posting-id="/g) ?? []).length;
+  if (rows.length !== listed) throw new SourceError(INVALID);
+  return rows;
 }
 
 function baiduJob(raw, source) {

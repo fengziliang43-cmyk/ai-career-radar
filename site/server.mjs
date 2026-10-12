@@ -9,6 +9,7 @@ import { parseArgs } from 'node:util';
 
 import { createHandler } from './server/app.mjs';
 import { createRefresher, publicState } from './server/refresh.mjs';
+import { SOURCES } from './server/sources.mjs';
 import { createStore } from './server/store.mjs';
 
 const HOUR = 3_600_000;
@@ -75,12 +76,14 @@ server.listen(port, host, () => {
   console.log(`AI 新职业雷达 → http://${host === '::1' ? '[::1]' : host}:${port}/`);
 });
 
-// 2026-10-11 良授权：服务运行期间，数据超过 24 小时自动刷新一次。
+// 2026-10-11 良授权：服务运行期间，数据超过 24 小时自动刷新一次；
+// 白名单里有从没读过的来源（刚加的新来源）时，也立即补读一次。
 async function refreshIfStale() {
   if (refresher.running) return;
-  const { checkedAt } = await store.readState();
+  const { checkedAt, sources } = await store.readState();
   const last = Date.parse(checkedAt ?? '');
-  if (Number.isFinite(last) && Date.now() - last < AUTO_REFRESH_AFTER) return;
+  const unread = SOURCES.some((source) => !sources[source.id]);
+  if (!unread && Number.isFinite(last) && Date.now() - last < AUTO_REFRESH_AFTER) return;
   try {
     await refresher.refresh();
   } catch (error) {

@@ -15,7 +15,7 @@
 | 海外 AI 公司 | OpenAI | [Ashby](https://api.ashbyhq.com/posting-api/job-board/openai) | 全量，1 次请求 | 排除销售等职能后全部 |
 | 海外 AI 公司 | Anthropic | [Greenhouse](https://api.greenhouse.io/v1/boards/anthropic/jobs?content=true) | 全量，1 次 | 同上 |
 | 海外 AI 公司 | Scale AI | [Greenhouse](https://api.greenhouse.io/v1/boards/scaleai/jobs?content=true) | 全量，1 次 | 同上 |
-| 海外 AI 公司 | Palantir | [Lever](https://api.lever.co/v0/postings/palantir?mode=json) | 全量，1 次 | 同上（良 2026-10-11 选择加入；FDE 老牌雇主，会抬高 FDE 计数） |
+| 海外 AI 公司 | Palantir | [Lever 公开职位页](https://jobs.lever.co/palantir) | 全量，1 次；页面不含职位描述 | 同上（良 2026-10-11 选择加入；FDE 老牌雇主，会抬高 FDE 计数） |
 | 海外 AI 公司 | Databricks | [Greenhouse](https://boards-api.greenhouse.io/v1/boards/databricks/jobs?content=true) | 全量，1 次 | 只计标题带 AI 信号的岗位（数据平台公司） |
 | Agent 公司 | Sierra、Decagon、Cohere、LangChain | Ashby（`sierra`、`decagon`、`cohere`、`langchain`） | 各 1 次 | 排除销售等职能后全部 |
 | Agent 公司 | Glean | Greenhouse（`gleanwork`） | 1 次 | 同上 |
@@ -26,6 +26,7 @@
 | 国内 | 网易 | [网易招聘接口](https://hr.163.com/api/hr163/position/queryPage)（POST） | 全量，每页 200 条（接口上限），约 14 页 | 同上 |
 | 国内 | 百度 | [百度实习列表](https://talent.baidu.com/jobs/list?recruitType=INTERN) | 只有列表首页（完整列表接口要登录） | 同上 |
 
+- 2026-10-12：Palantir 原用 [Lever 接口](https://api.lever.co/v0/postings/palantir?mode=json)，约 6 MB 且不压缩，服务器 45 秒只下载到约 1.4 MB，导致首次发布验收失败；改读同一批职位的公开列表页（压缩后约 110 KB，职位 ID 相同）。所有来源遇到连接失败、超时、429 或 5xx 时自动重试一次。
 - 只保存岗位标题、链接、地区、部门、发布日期、首次与最近出现日期和职责段里的技能词，不保存职位正文。销售、市场、招聘、财务、法务等职能不计入。
 - 岗位按标题归到 13 个职业簇（`site/public/data/rules.js`），作为研究的证据，不改写研究结论；值得追踪的新方向按研究流程写进 `watchlist.md`。海外岗位只作领先信号，不外推中国。
 - 2026-10-11 首次读取原 4 个来源 4/4 成功：1652 个职位，相关 1110 个，对上职业簇 351 个。新来源各自以第一次读取成功的时间为基线。

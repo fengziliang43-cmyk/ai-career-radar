@@ -11,6 +11,6 @@
     "dev": "node server.mjs",
     "start": "node server.mjs",
     "refresh": "node server.mjs --refresh-once",
-    "test": "node --test"
+    "test": "node --test 'test/*.test.mjs'"
   }
 }

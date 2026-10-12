@@ -6,12 +6,16 @@ const USER_AGENT = 'AI-Career-Radar/2.0 (private research; fixed public job boar
 const ACCEPT = 'application/json,text/html;q=0.9';
 
 export class SourceError extends Error {
-  constructor(message, httpStatus = null) {
+  /** `transient` marks failures worth one retry: dropped connections, timeouts, 429 and 5xx. */
+  constructor(message, httpStatus = null, { transient = false } = {}) {
     super(message);
     this.name = 'SourceError';
     this.httpStatus = httpStatus;
+    this.transient = transient;
   }
 }
+
+const transientStatus = (status) => status === 429 || status >= 500;
 
 /**
  * Fetch a fixed source URL as text. Non-2xx, redirects, timeouts and oversized
@@ -49,11 +53,13 @@ async function nativeText({ url, method, body, contentType, timeoutMs }) {
       signal: AbortSignal.timeout(timeoutMs),
     });
   } catch (error) {
-    throw new SourceError(isTimeout(error) ? '请求超时' : '连接失败');
+    throw new SourceError(isTimeout(error) ? '请求超时' : '连接失败', null, { transient: true });
   }
   if (!response.ok) {
     await response.body?.cancel();
-    throw new SourceError(`HTTP ${response.status}`, response.status);
+    throw new SourceError(`HTTP ${response.status}`, response.status, {
+      transient: transientStatus(response.status),
+    });
   }
   if (!response.body) return '';
   const reader = response.body.getReader();
@@ -73,7 +79,7 @@ async function nativeText({ url, method, body, contentType, timeoutMs }) {
     }
   } catch (error) {
     if (error instanceof SourceError) throw error;
-    throw new SourceError(isTimeout(error) ? '请求超时' : '读取中断');
+    throw new SourceError(isTimeout(error) ? '请求超时' : '读取中断', null, { transient: true });
   }
   return text + decoder.decode();
 }
@@ -119,12 +125,14 @@ async function curlText({ url, method, body, contentType, timeoutMs }) {
       },
     ));
   } catch (error) {
-    throw new SourceError(error?.killed ? '请求超时' : '连接失败');
+    throw new SourceError(error?.killed ? '请求超时' : '连接失败', null, { transient: true });
   }
   const split = stdout.lastIndexOf('\n');
   const status = Number(stdout.slice(split + 1));
   if (!(status >= 200 && status < 300)) {
-    throw new SourceError(`HTTP ${status || '未知'}`, status || null);
+    throw new SourceError(`HTTP ${status || '未知'}`, status || null, {
+      transient: !status || transientStatus(status),
+    });
   }
   return stdout.slice(0, split);
 }

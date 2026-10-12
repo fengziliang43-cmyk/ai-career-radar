@@ -9,7 +9,7 @@
 ```sh
 node server.mjs                 # http://127.0.0.1:3001/ ，哨塔也用这条命令启停
 node server.mjs --refresh-once  # 只刷新一次职位数据后退出
-node --test                     # 全部测试
+node --test 'test/*.test.mjs'   # 全部测试；只跑 test/，避开 work/ 里的发布包副本
 ```
 
 参数：`--host`（只允许回环地址）、`--port`、`--origin`（允许发起刷新的页面地址，可多次）、`--state-dir`（默认 `.local/`）、`--no-auto-refresh`。服务器上的写法见 `deploy/ai-career-radar.service`。
@@ -28,7 +28,7 @@ node --test                     # 全部测试
 | `server/store.mjs` | `.local/state.json`（当前岗位）与 `.local/history.json`（每日计数） |
 | `server/app.mjs` | 请求处理与防护（只收本机连接、固定 Host/Origin、刷新需专用请求头） |
 | `deploy/` | 服务器部署、nginx 与回滚说明 |
-| `test/` | `node --test` 用的测试 |
+| `test/` | 自动测试 |
 
 ## 数据怎么来
 
@@ -40,6 +40,6 @@ node --test                     # 全部测试
 
 ## 常见修改
 
-- **研究更新**：先改报告和 `watchlist.md`，再同步 `public/data/clusters.js`，跑 `node --test`。
+- **研究更新**：先改报告和 `watchlist.md`，再同步 `public/data/clusters.js`，跑 `node --test 'test/*.test.mjs'`。
 - **某个岗位归错了**：改 `public/data/rules.js`，在 `test/radar.test.mjs` 的标题用例里加一条，跑测试，再打开页面看那个职业簇。
 - **加信源**：先在 `sources/registry.md` 登记并经良确认，再加到 `server/sources.mjs`，补解析测试。新来源第一次读取的岗位算基线，不会被标成“新”；历史每行记着当天用了哪些来源，来源变化后趋势线从变化那天重新起算。
