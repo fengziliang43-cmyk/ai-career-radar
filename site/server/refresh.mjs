@@ -5,7 +5,7 @@ import {
 } from '../public/shared/radar.js';
 import { fetchText as defaultFetchText, SourceError } from './fetch.mjs';
 import { extractKnowledge } from './knowledge.mjs';
-import { parseSource, SOURCES } from './sources.mjs';
+import { loadSource, SOURCES } from './sources.mjs';
 
 /**
  * Refreshes all fixed sources. Concurrent callers share one run.
@@ -20,6 +20,7 @@ export function createRefresher({
   sources = SOURCES,
   fetchText = defaultFetchText,
   now = () => new Date(),
+  pageDelayMs,
 }) {
   let inFlight = null;
 
@@ -44,8 +45,7 @@ export function createRefresher({
     const results = await Promise.all(
       sources.map(async (source) => {
         try {
-          const body = await fetchText(source.fetchUrl, { timeoutMs: source.timeoutMs });
-          return { source, raw: parseSource(source, body) };
+          return { source, raw: await loadSource(source, fetchText, { pause: pageDelayMs }) };
         } catch (error) {
           return {
             source,
@@ -115,7 +115,9 @@ export function createRefresher({
 
     const state = { version: 2, checkedAt: at, sources: status, jobs, titles };
     await store.writeState(state);
-    if (jobs.length) await store.appendHistory(historyEntry(jobs, time));
+    if (jobs.length) {
+      await store.appendHistory(historyEntry(jobs, time, sources.map((source) => source.id)));
+    }
     return state;
   }
 }
@@ -127,6 +129,7 @@ export function publicState(state, history, { refreshing = false } = {}) {
     refreshing,
     sources: SOURCES.map((source) => ({
       id: source.id,
+      group: source.group,
       employer: source.employer,
       label: source.label,
       pageUrl: source.pageUrl,

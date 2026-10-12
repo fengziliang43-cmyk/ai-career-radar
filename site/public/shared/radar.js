@@ -19,10 +19,15 @@ const PLACE_SUFFIX = new RegExp(`\\s*(?:[-–—|]\\s*)+(?:${PLACES})\\b.*$`, 'i
 const SENIORITY =
   /\b(?:senior|sr\.?|staff\+?|principal|junior|mid[- ]level|entry[- ]level)(?=\W|$)/gi;
 
-/** Business functions and non-AI internships never enter the radar. */
+/**
+ * Business functions never enter the radar. For employers whose lists are
+ * mostly not about AI (requireAiTitle), the title itself must carry an AI
+ * signal; matching a cluster rule alone is not enough there, because words
+ * like 医药 or 解决方案 also describe ordinary jobs.
+ */
 export function isRelevant(job, { requireAiTitle = false } = {}) {
   if (excludedTeams.has(job.team) || excludedTitle.test(job.title)) return false;
-  return !requireAiTitle || aiTitle.test(job.title) || matchClusters(job.title).length > 0;
+  return !requireAiTitle || aiTitle.test(job.title);
 }
 
 export function matchClusters(title) {
@@ -58,13 +63,11 @@ export function displayTitle(title) {
   return title.replace(PLACE_SUFFIX, '').trim() || title;
 }
 
+const CHINA =
+  /中国(?!香港|澳门|台湾)|北京|上海|杭州|深圳|广州|成都|南京|武汉|西安|苏州|厦门|合肥|重庆|天津|长沙|郑州|济南|青岛|大连|珠海|东莞|佛山|宁波|无锡|福州|石家庄|beijing|shanghai|hangzhou|shenzhen|guangzhou|chengdu|china/i;
+
 export function isChina(job) {
-  return (
-    job.employer === '百度' ||
-    /中国|北京|上海|杭州|深圳|广州|成都|beijing|shanghai|hangzhou|shenzhen|china/i.test(
-      job.location,
-    )
-  );
+  return CHINA.test(job.location ?? '');
 }
 
 /** History is keyed by UTC day so the server and laptop agree. */
@@ -72,8 +75,11 @@ export function dayKey(time) {
   return new Date(time).toISOString().slice(0, 10);
 }
 
-/** One history row: open postings and employers per cluster for a day. */
-export function historyEntry(jobs, time) {
+/**
+ * One history row: open postings and employers per cluster for a day, plus
+ * the source ids it was computed from so trends never mix source sets.
+ */
+export function historyEntry(jobs, time, sourceIds = []) {
   const clusters = {};
   let other = 0;
   for (const job of jobs) {
@@ -87,7 +93,14 @@ export function historyEntry(jobs, time) {
       }
     }
   }
-  return { date: dayKey(time), total: jobs.length, other, clusters };
+  return { date: dayKey(time), sources: [...sourceIds].sort(), total: jobs.length, other, clusters };
+}
+
+// Trend lines only compare days that used the same sources as the latest day.
+function comparableHistory(history) {
+  const key = (day) => (Array.isArray(day.sources) ? day.sources.join(',') : '');
+  const latest = history.at(-1);
+  return latest ? history.filter((day) => key(day) === key(latest)) : [];
 }
 
 /**
@@ -125,7 +138,7 @@ export function buildView({ clusters, data, now = Date.now() }) {
     for (const id of job.clusterIds) byCluster.get(id)?.push(job);
   }
 
-  const history = (data?.history ?? []).slice(-TREND_DAYS);
+  const history = comparableHistory(data?.history ?? []).slice(-TREND_DAYS);
   const clusterViews = clusters.map((cluster) => {
     const list = byCluster.get(cluster.id) ?? [];
     const employers = tally(list.map((job) => job.employer));

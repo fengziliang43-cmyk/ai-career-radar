@@ -6,7 +6,9 @@ import { clusterRules } from '../public/data/rules.js';
 import {
   buildView,
   displayTitle,
+  groupOf,
   historyEntry,
+  isChina,
   isRelevant,
   matchClusters,
   normalizeTitle,
@@ -55,6 +57,28 @@ test('business functions and non-AI internships are not relevant', () => {
   assert.equal(isRelevant({ title: '百度健康AI产品实习生', team: '' }, { requireAiTitle: true }), true);
 });
 
+test('non-AI employers only count titles that carry an AI signal', () => {
+  const ai = (title) => isRelevant({ title, team: '' }, { requireAiTitle: true });
+  assert.equal(ai('Sr. Forward Deployed Engineer (FDE)'), true);
+  assert.equal(ai('腾讯云-AI前线部署工程师'), true);
+  assert.equal(ai('混元大语言模型后训练算法工程师'), true);
+  assert.equal(ai('Solutions Architect'), false);
+  assert.equal(ai('腾讯健康-医疗行业解决方案云架构师'), false);
+  assert.equal(ai('医药-B2C-采购专家'), false);
+  assert.equal(ai('高级数据分析师'), false);
+  assert.equal(ai('财务科技—AI产品经理'), true);
+  assert.equal(ai('AI营销创意策划'), false, 'marketing is excluded even with AI');
+  assert.equal(ai('背景アーティスト｜Environment Artist'), false, 'game art never reaches the eval-environment rule');
+});
+
+test('China means a mainland location, not the employer', () => {
+  assert.equal(isChina({ employer: '腾讯', location: '深圳' }), true);
+  assert.equal(isChina({ employer: '美团', location: '北京市、上海市' }), true);
+  assert.equal(isChina({ employer: '腾讯', location: '新加坡' }), false);
+  assert.equal(isChina({ employer: '腾讯', location: '中国香港' }), false);
+  assert.equal(isChina({ employer: 'OpenAI', location: 'Singapore' }), false);
+});
+
 test('titles map to research clusters', () => {
   const cases = [
     ['Forward Deployed Engineer (FDE), Healthcare - SF', ['fde-ai-deployment', 'medical-ai-evaluation']],
@@ -69,15 +93,37 @@ test('titles map to research clusters', () => {
     ['IT Support Engineer', []],
     ['Safeguards Enforcement Analyst, Child Safety', ['agentic-risk-safeguards']],
     ['Product Manager, API Agents', ['agent-product-manager']],
-    ['AI产品经理实习生（J106390）', ['agent-product-manager']],
+    ['AI产品经理实习生（J106390）', []],
+    ['Senior AI Product Manager', []],
+    ['企业微信-AI产品经理-智能助理Agent', ['agent-product-manager']],
+    ['资深 Agent 产品研发工程师', []],
+    ['Senior Agent Product Manager, Healthcare', ['agent-product-manager', 'medical-ai-evaluation']],
+    ['Agent 评测产品经理', ['agent-evals-product', 'agent-product-manager']],
     ['DuMate产品运营实习生（J106391）', ['ai-ops-rag-baseline']],
     ['Medical Fellow - Human Frontier Collective (US)', ['medical-ai-evaluation']],
+    ['Clinical AI Manager', ['medical-ai-evaluation']],
+    ['Member of Product Staff, Nursing', ['medical-ai-evaluation']],
     ['Software Engineer, Hardware Health', []],
     ['Prompt Engineer', ['prompt-training-digital-human-cooling']],
+    ['腾讯云-AI前线部署工程师', ['fde-ai-deployment']],
+    ['大模型应用开发工程师', ['applied-ai-architect']],
+    ['大模型风险防控技术专家', ['agentic-risk-safeguards']],
+    ['腾讯游戏-大模型评测专家', ['agent-evaluation-engineer']],
+    ['腾讯会议-评测产品经理', ['agent-evals-product']],
+    ['Administrative Business Partner', []],
   ];
   for (const [title, expected] of cases) {
     assert.deepEqual(matchClusters(title).sort(), [...expected].sort(), title);
   }
+});
+
+test('unmatched agent roles and generic AI product roles get their own groups', () => {
+  assert.equal(groupOf('Agent Strategy Manager'), 'agent-roles');
+  assert.equal(groupOf('Conversation Designer'), 'agent-roles');
+  assert.equal(groupOf('AI产品经理实习生'), 'ai-product');
+  assert.equal(groupOf('腾讯云-AgentRuntime高级技术专家'), 'agent-roles');
+  assert.equal(groupOf('魔方工作室-AI技术美术'), 'ai-content');
+  assert.equal(groupOf('Research Engineer, Pretraining'), 'research');
 });
 
 test('location and seniority variants collapse to one role', () => {
@@ -114,7 +160,7 @@ test('baseline postings are not new; later ones are, with new employers and titl
     jobs: [
       job('Forward Deployed Engineer - SF'),
       job('Forward Deployed Engineer - NYC', { firstSeenAt: later }),
-      job('AI产品经理实习生', {
+      job('Agent产品经理实习生', {
         source: 'baidu-intern',
         employer: '百度',
         location: '北京市',
@@ -151,6 +197,22 @@ test('baseline postings are not new; later ones are, with new employers and titl
   assert.ok(kinds.includes('employer:agent-product-manager'));
   assert.ok(kinds.includes('gone:agent-evaluation-engineer'));
   assert.ok(kinds.includes('titles:'));
+});
+
+test('trends only compare days built from the same sources', () => {
+  const data = {
+    sources,
+    jobs: [job('Forward Deployed Engineer')],
+    history: [
+      { date: '2026-10-10', clusters: { 'fde-ai-deployment': { count: 9 } } },
+      { date: '2026-10-11', sources: ['baidu-intern', 'openai'], clusters: { 'fde-ai-deployment': { count: 1 } } },
+      { date: '2026-10-12', sources: ['baidu-intern', 'openai'], clusters: { 'fde-ai-deployment': { count: 2 } } },
+    ],
+  };
+  const fde = buildView({ clusters, data, now: NOW }).clusters.find((cluster) => cluster.id === 'fde-ai-deployment');
+  assert.deepEqual(fde.series.map((point) => point.date), ['2026-10-11', '2026-10-12']);
+  const entry = historyEntry([job('Forward Deployed Engineer')], new Date(NOW), ['openai', 'baidu-intern']);
+  assert.deepEqual(entry.sources, ['baidu-intern', 'openai']);
 });
 
 test('a failed source is reported in changes and its postings stay visible', () => {

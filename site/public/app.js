@@ -353,22 +353,32 @@ function groupHtml(group) {
 
 function renderFooter() {
   const sources = ui.data?.sources ?? [];
+  const groups = new Map();
+  for (const source of sources) {
+    if (!groups.has(source.group)) groups.set(source.group, []);
+    groups.get(source.group).push(source);
+  }
   const reports = snapshot.reports.map((report) => `${report.date}《${report.title}》`).join('、');
+  const scope = sources.length
+    ? `${sources.length} 家雇主的公开职位：${[...groups]
+        .map(([group, items]) => `${group}（${items.map((item) => item.employer).join('、')}）`)
+        .join('；')}。国内大厂、百度和 Databricks 只计标题带 AI 的岗位，销售、招聘、财务、法务等职能都不计入。海外岗位是领先信号，不直接代表中国市场。`
+    : '固定的公开招聘来源；销售、招聘、财务、法务等职能不计入。海外岗位是领先信号，不直接代表中国市场。';
   const lines = [
-    `<p><b>数据范围</b>OpenAI、Anthropic、Scale AI 的全部公开职位，加上百度实习列表首页；销售、招聘、财务、法务等职能不计入。海外岗位是领先信号，不直接代表中国市场。</p>`,
+    `<p><b>数据范围</b>${esc(scope)}</p>`,
     `<p><b>研究判断</b>来自 ${esc(reports)}。新颖度、需求阶段和适配度只在人工研究后更新，岗位数据不会改写它们。</p>`,
-    `<p><b>归类方式</b>按职位标题归到职业簇，一个岗位可以同时属于几个簇；同一职位在不同城市的招聘合并显示。“新”指 ${NEW_JOB_DAYS} 天内第一次出现的岗位。</p>`,
+    `<p><b>归类方式</b>按职位标题归到职业簇，一个岗位可以同时属于几个簇；同一职位在不同城市的招聘合并显示。“新”指 ${NEW_JOB_DAYS} 天内第一次出现的岗位；新接入的来源从第一次读取起算。</p>`,
   ];
-  if (sources.length) {
+  for (const [group, items] of groups) {
     lines.push(
-      `<p class="sources"><b>来源</b>${sources
+      `<p class="sources"><b>${esc(group)}</b>${items
         .map(
           (source) =>
             `<span>${link(source.pageUrl, source.employer)} ${
               source.status === 'error'
                 ? `<em class="err">本次未读到（${esc(source.error ?? '原因未知')}）</em>`
                 : source.status === 'ok'
-                  ? `${source.jobCount} 个`
+                  ? `${source.jobCount}`
                   : '待读取'
             }</span>`,
         )

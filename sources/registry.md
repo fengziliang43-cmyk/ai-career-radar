@@ -8,11 +8,29 @@
 
 ## 网站职业数据来源（固定白名单）
 
-- 4 个请求地址，都是雇主官方的公开职位接口或列表：[OpenAI Ashby 公开职位接口](https://api.ashbyhq.com/posting-api/job-board/openai)、[Anthropic Greenhouse 公开职位接口](https://api.greenhouse.io/v1/boards/anthropic/jobs?content=true)、[Scale Greenhouse 公开职位接口](https://api.greenhouse.io/v1/boards/scaleai/jobs?content=true)、[百度实习列表](https://talent.baidu.com/jobs/list?recruitType=INTERN)（只有列表首页）。白名单写在 `site/server/sources.mjs`，不接受页面传入的地址，不使用账号、Cookie 或登录态，不绕过访问限制。
-- 只保存岗位标题、链接、地区、部门、发布日期、首次与最近出现日期和职责段里的技能词，不保存职位正文。销售、市场、招聘、财务、法务等职能不计入；百度列表只保留标题带 AI 信号的实习。
+白名单写在 `site/server/sources.mjs`，与本节一致。都是雇主官方的公开职位接口或列表页，不接受页面传入的地址，不使用账号、Cookie 或登录态，不绕过访问限制；2026-10-11 检查过 robots.txt，均未限制。2026-10-11 良确认在原 4 个来源之外新增 17 个。
+
+| 分组 | 雇主 | 接口 | 读取方式 | 计入范围 |
+|---|---|---|---|---|
+| 海外 AI 公司 | OpenAI | [Ashby](https://api.ashbyhq.com/posting-api/job-board/openai) | 全量，1 次请求 | 排除销售等职能后全部 |
+| 海外 AI 公司 | Anthropic | [Greenhouse](https://api.greenhouse.io/v1/boards/anthropic/jobs?content=true) | 全量，1 次 | 同上 |
+| 海外 AI 公司 | Scale AI | [Greenhouse](https://api.greenhouse.io/v1/boards/scaleai/jobs?content=true) | 全量，1 次 | 同上 |
+| 海外 AI 公司 | Palantir | [Lever](https://api.lever.co/v0/postings/palantir?mode=json) | 全量，1 次 | 同上（良 2026-10-11 选择加入；FDE 老牌雇主，会抬高 FDE 计数） |
+| 海外 AI 公司 | Databricks | [Greenhouse](https://boards-api.greenhouse.io/v1/boards/databricks/jobs?content=true) | 全量，1 次 | 只计标题带 AI 信号的岗位（数据平台公司） |
+| Agent 公司 | Sierra、Decagon、Cohere、LangChain | Ashby（`sierra`、`decagon`、`cohere`、`langchain`） | 各 1 次 | 排除销售等职能后全部 |
+| Agent 公司 | Glean | Greenhouse（`gleanwork`） | 1 次 | 同上 |
+| 医疗 AI | Abridge、Ambience Healthcare、OpenEvidence、Nabla | Ashby（`abridge`、`ambiencehealthcare`、`openevidence`、`nabla`） | 各 1 次 | 同上 |
+| 医疗 AI | Suki、PathAI、Flatiron Health | Greenhouse（`suki`、`pathai`、`flatironhealth`） | 各 1 次 | 同上 |
+| 国内 | 腾讯 | [腾讯招聘接口](https://careers.tencent.com/tencentcareer/api/post/Query) | 全量，每页 3000 条 | 只计标题带 AI 信号的岗位 |
+| 国内 | 美团 | [美团招聘接口](https://zhaopin.meituan.com/api/official/job/getJobList)（POST，社招） | 全量，每页 1000 条，约 3 页 | 同上 |
+| 国内 | 网易 | [网易招聘接口](https://hr.163.com/api/hr163/position/queryPage)（POST） | 全量，每页 200 条（接口上限），约 14 页 | 同上 |
+| 国内 | 百度 | [百度实习列表](https://talent.baidu.com/jobs/list?recruitType=INTERN) | 只有列表首页（完整列表接口要登录） | 同上 |
+
+- 只保存岗位标题、链接、地区、部门、发布日期、首次与最近出现日期和职责段里的技能词，不保存职位正文。销售、市场、招聘、财务、法务等职能不计入。
 - 岗位按标题归到 13 个职业簇（`site/public/data/rules.js`），作为研究的证据，不改写研究结论；值得追踪的新方向按研究流程写进 `watchlist.md`。海外岗位只作领先信号，不外推中国。
-- 2026-10-11 首次读取 4/4 成功：1652 个职位，相关 1110 个，对上职业簇 351 个；这次读取是基线。
-- 依据：[Ashby Job Postings API](https://developers.ashbyhq.com/docs/public-job-posting-api)；OpenAI 官网 [Context Research 岗位](https://openai.com/careers/agent-post-training-context-research-san-francisco/) 的申请入口指向 `jobs.ashbyhq.com/openai/`；[Scale 官网](https://scale.com/careers) 的职位加载代码调用上述 Greenhouse 地址。OpenAI 原搜索页自动请求返回 403，所以改用官方公开接口。
+- 2026-10-11 首次读取原 4 个来源 4/4 成功：1652 个职位，相关 1110 个，对上职业簇 351 个。新来源各自以第一次读取成功的时间为基线。
+- 依据：[Ashby Job Postings API](https://developers.ashbyhq.com/docs/public-job-posting-api)；[Greenhouse Job Board API](https://developers.greenhouse.io/job-board.html)；[Lever Postings API](https://github.com/lever/postings-api)；OpenAI 官网 [Context Research 岗位](https://openai.com/careers/agent-post-training-context-research-san-francisco/) 的申请入口指向 `jobs.ashbyhq.com/openai/`；[Scale 官网](https://scale.com/careers) 的职位加载代码调用上述 Greenhouse 地址；腾讯、美团、网易接口是各自官网职位列表页调用的公开接口。OpenAI 原搜索页自动请求返回 403，所以改用官方公开接口。
+- 测过但不接：字节跳动、阿里巴巴、京东的招聘接口要求登录或带 Cookie 的校验令牌；百度完整列表接口返回未授权；快手接口参数未跑通。北森（如科大讯飞）、Moka、飞书招聘等国内招聘平台上的医疗 AI 公司需要逐家找入口，北森资源服务器在本机连接失败，留作下一步。
 - 新增来源先在本页登记，再经良确认后写进白名单。
 - 2026-10-11 之前 Codex 版的检查方式（5 项检查、28 个自动方向、代表岗位哈希核验）随网站重写停用，代码与当时的说明保存在项目 Git 提交 `bd2916f`。
 

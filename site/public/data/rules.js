@@ -27,11 +27,12 @@ export const excludedTeams = new Set([
 ]);
 
 export const excludedTitle =
-  /\baccount (?:director|executive|associate|manager)|\bsales\b|seller|business development|partner director|client partner|agency partner|vendor (?:lead|manager)|deal operations|capture manager|subcontracts|\brecruit|marketing|lifecycle|growth lead|\bcounsel\b|paralegal|payroll|accountant|executive assistant|\bads\b|\bad (?:formats|sales|solutions|products)\b|warehouse|logistics|transaction (?:manager|principal)|land development|energy scheduling|due diligence|external affairs|congressional|state and local affairs|economic development|community engagement|\bAV\b|audiovisual|销售|招聘|品牌|市场实习/i;
+  /\baccount (?:director|executive|associate|manager)|\bsales\b|seller|business development|partner director|client partner|agency partner|vendor (?:lead|manager)|deal operations|capture manager|subcontracts|\brecruit|marketing|lifecycle|growth lead|\bcounsel\b|paralegal|payroll|accountant|executive assistant|\bads\b|\bad (?:formats|sales|solutions|products)\b|warehouse|logistics|transaction (?:manager|principal)|land development|energy scheduling|due diligence|external affairs|congressional|state and local affairs|economic development|community engagement|\bAV\b|audiovisual|administrative|business affairs|deal (?:team|lead)|special situations|销售|招聘|品牌|市场实习|市场营销|营销|推广|采购|财务(?:BP|分析|经理|专员|主管)|会计|出纳|法务|行政|人力资源|HRBP|商务拓展|大客户经理|广告(?:运营|销售|行业|代理)/i;
 
-// 只有这些来源要求标题本身带 AI 信号才算 AI 岗位；AI 公司的职位默认都相关。
+// 非 AI 公司的来源（requireAiTitle）只算标题本身带 AI 信号的岗位；AI 公司的职位默认都相关。
+// 除了 AI、大模型这类词，也认 FDE、后训练、评测这类只在 AI 岗位出现的职位词。
 export const aiTitle =
-  /\bai\b|aigc|\bllm|\bgpt|agent|大模型|模型|算法|智能|生成式|文心|千帆|dumate|maas|数据/i;
+  /\bai\b|aigc|genai|gen ai|generative|\bllms?\b|\bgpt|machine learning|\bml\b|deep learning|\bnlp\b|computer vision|agent|智能体|大模型|多模态|模型|算法|机器学习|深度学习|人工智能|智能|生成式|文心|千帆|混元|longcat|dumate|maas|forward[- ]deployed|\bfde\b|前线部署|post[- ]?training|后训练|强化学习|reinforcement learning|\brl\b|\bevals?\b|模型评测|评测产品|评测工程|评估工程|benchmark|prompt|提示词|标注|训练师|数字人/i;
 
 /** @type {Record<string, {include: RegExp[], exclude?: RegExp[]}>} */
 export const clusterRules = {
@@ -40,7 +41,7 @@ export const clusterRules = {
       /forward[- ]deployed|\bFDE\b/i,
       /\bdeployment (?:lead|engineer|engineering|strategist|manager)/i,
       /technical deployment/i,
-      /AI 实施|部署工程/i,
+      /AI 实施|部署工程|前线部署|前沿部署|驻场.{0,4}AI|AI.{0,6}驻场/i,
     ],
     exclude: [/model deployment|capacity|data cent(?:er|re)/i],
   },
@@ -59,7 +60,7 @@ export const clusterRules = {
     include: [
       /\bevals?\b|\bevaluations?\b|benchmark|\bgraders?\b/i,
       /\benvironments?\b/i,
-      /评测工程|评估工程|评测开发/i,
+      /评测工程|评估工程|评测开发|(?:大模型|模型|多模态|AI|agent|智能体).{0,8}评测|评测(?:专家|工程师|研究员|算法)/i,
     ],
     exclude: [/product manager|\bPM\b|产品|策略|analyst|enforcement/i],
   },
@@ -73,7 +74,7 @@ export const clusterRules = {
     include: [
       /applied ai/i,
       /\bai architect|solutions? (?:architect|engineer)|field executive architect/i,
-      /解决方案|AI 架构/i,
+      /解决方案|AI ?架构|AI ?应用(?:工程|开发|架构|专家)|大模型应用/i,
     ],
     exclude: [/\bads\b/i],
   },
@@ -94,7 +95,7 @@ export const clusterRules = {
       /red[- ]team|threat (?:intel|investigat)/i,
       /risk (?:operations|analyst)|safety (?:operations|response)|trust ?(?:&|and) ?safety/i,
       /ai controls|harm operations|(?:agent|risk) standards/i,
-      /风险|红队|安全评测|内容安全/i,
+      /(?:大模型|模型|AI|智能体|agent|aigc).{0,8}(?:风险|安全|红队|风控)|(?:风险|安全|红队|风控).{0,8}(?:大模型|模型|AI|智能体|agent|aigc)|安全评测|内容安全/i,
     ],
     exclude: [/\bads\b/i],
   },
@@ -105,18 +106,18 @@ export const clusterRules = {
       /智能体身份|权限设计/i,
     ],
   },
+  // 只算对 Agent / 工作流负责的产品岗；普通“AI 产品经理”研究里写明不算新，归到簇外的产品组。
   'agent-product-manager': {
     include: [
-      /(?:agents?|agentic|codex|workflow).*(?:product manager|产品经理)/i,
-      /(?:product manager|产品经理).*(?:agents?|agentic|codex|workflow)/i,
-      /\bAI product manager|product manager.*(?:ai applications|gen ?ai)/i,
-      /AI ?产品经理|agent ?产品|智能体产品|dumate产品(?!运营)|AI产品(?!运营)/i,
+      /(?:agents?|agentic|codex|workflow|copilot).*(?:product manager|\bPM\b|产品经理|产品专家|产品负责人)/i,
+      /(?:product manager|\bPM\b|产品经理|产品专家).*(?:agents?|agentic|codex|workflow|智能体|工作流)/i,
+      /(?:智能体|工作流|dumate).{0,6}(?:产品经理|产品专家|产品负责人|产品策划)/i,
     ],
   },
   'medical-ai-evaluation': {
     include: [
-      /medical|clinical|clinician|\bhealth(?:care)?\b|life sciences?|biosciences?|biomedical|pharma/i,
-      /医疗|医学|临床|健康|医药|药物/i,
+      /medical|clinical|clinician|physician|nurs(?:e|ing)|pharmacist|doctor|\bhealth(?:care)?\b|life sciences?|biosciences?|biomedical|pharma/i,
+      /医疗|医学|临床|健康|医药|药物|医生|医师|护士|护理|药师/i,
     ],
     exclude: [/biological safety|bio harms|hardware health/i],
   },
@@ -136,6 +137,21 @@ export const clusterRules = {
 
 // 没归进任何职业簇的岗位按粗方向折叠显示；按顺序取第一个命中的方向。
 export const otherGroups = [
+  {
+    id: 'agent-roles',
+    label: 'Agent 相关岗位（研究簇之外）',
+    pattern: /\bagent|智能体|conversation design|对话设计/i,
+  },
+  {
+    id: 'ai-product',
+    label: '产品经理与产品策划（通用 AI 产品）',
+    pattern: /product manager|产品经理|产品策划|产品专家|产品负责人|\bAPM\b/i,
+  },
+  {
+    id: 'ai-content',
+    label: 'AI 内容、游戏与美术（策划、美术、导演等）',
+    pattern: /策划|美术|动画|导演|制片|内容创作|设计师|游戏/,
+  },
   {
     id: 'expert-data',
     label: '专家数据与人类反馈',
@@ -158,13 +174,13 @@ export const otherGroups = [
     id: 'research',
     label: '模型研究（对齐、预训练、推理等）',
     pattern:
-      /research|scientist|alignment|interpretability|pre-?train|reasoning|\bRSI\b|算法|研究/i,
+      /research|scientist|\bRE\b|\bRS\b|alignment|interpretability|pre-?train|reasoning|\bRSI\b|算法|研究|科学家|语音|视觉|多模态/i,
   },
   {
     id: 'infra',
     label: '基础设施、算力与性能',
     pattern:
-      /infrastructure|\binfra\b|\bGPU\b|\bTPU\b|kernel|compute|inference|performance|distributed|network|database|storage|reliability|\bSRE\b|devops|observability|build systems|caching|data center|platform|sandbox|systems engineer/i,
+      /infrastructure|\binfra\b|\bGPU\b|\bTPU\b|kernel|compute|inference|performance|distributed|network|database|storage|reliability|\bSRE\b|devops|observability|build systems|caching|data center|platform|sandbox|systems engineer|算力|训推|平台|基础设施|沙箱|运维/i,
   },
   {
     id: 'data',
@@ -181,12 +197,12 @@ export const otherGroups = [
     id: 'program',
     label: '项目、交付与运营管理',
     pattern:
-      /program|\bTPM\b|operations|operator|strategy|strategist|delivery|engagement|partnerships?|launch/i,
+      /program|\bTPM\b|operations|operator|strategy|strategist|delivery|engagement|partnerships?|launch|项目|商业分析|战略|咨询|分析师|交付|技术支持|合作/i,
   },
   {
     id: 'engineering',
     label: '软件工程（各产品线）',
-    pattern: /engineer|developer|\bSWE\b|研发|开发|工程/i,
+    pattern: /engineer|developer|architect|\bSWE\b|研发|开发|工程|架构|测试/i,
   },
   { id: 'other', label: '其他', pattern: /[\s\S]/ },
 ];

@@ -16,24 +16,36 @@ export class SourceError extends Error {
 /**
  * Fetch a fixed source URL as text. Non-2xx, redirects, timeouts and oversized
  * bodies all throw SourceError with a short message that is safe to show.
+ * POST is only used for the fixed JSON list queries some career sites need.
  * The server uses curl (RADAR_FETCH_TRANSPORT=curl) because it is faster to
  * the large Ashby board from there; local runs use Node's fetch.
  */
 export async function fetchText(
   url,
-  { timeoutMs = 15_000, transport = process.env.RADAR_FETCH_TRANSPORT } = {},
+  {
+    method = 'GET',
+    body,
+    contentType = 'application/json',
+    timeoutMs = 15_000,
+    transport = process.env.RADAR_FETCH_TRANSPORT,
+  } = {},
 ) {
-  return transport === 'curl'
-    ? curlText(url, timeoutMs)
-    : nativeText(url, timeoutMs);
+  const request = { url, method, body, contentType, timeoutMs };
+  return transport === 'curl' ? curlText(request) : nativeText(request);
 }
 
-async function nativeText(url, timeoutMs) {
+async function nativeText({ url, method, body, contentType, timeoutMs }) {
   let response;
   try {
     response = await fetch(url, {
+      method,
+      body,
       redirect: 'error',
-      headers: { accept: ACCEPT, 'user-agent': USER_AGENT },
+      headers: {
+        accept: ACCEPT,
+        'user-agent': USER_AGENT,
+        ...(body === undefined ? {} : { 'content-type': contentType }),
+      },
       signal: AbortSignal.timeout(timeoutMs),
     });
   } catch (error) {
@@ -66,14 +78,19 @@ async function nativeText(url, timeoutMs) {
   return text + decoder.decode();
 }
 
-async function curlText(url, timeoutMs) {
+async function curlText({ url, method, body, contentType, timeoutMs }) {
   const seconds = Math.max(5, Math.ceil(timeoutMs / 1000));
+  const payload =
+    body === undefined
+      ? []
+      : ['--request', method, '--header', `Content-Type: ${contentType}`, '--data-binary', body];
   let stdout;
   try {
     ({ stdout } = await promisify(execFile)(
       '/usr/bin/curl',
       [
-        '--disable',
+        '--disable', // must stay first: ignore any local .curlrc
+        ...payload,
         '--ipv4',
         '--compressed',
         '--silent',
