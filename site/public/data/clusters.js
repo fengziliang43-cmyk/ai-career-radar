@@ -1,5 +1,5 @@
 // 研究快照：13 个人工研究的职业簇。只能从 ../../../watchlist.md 和已发布报告同步（规则见项目 AGENTS.md），
-// 不在这里改写研究结论。岗位归类规则在 ./rules.js。
+// 不在这里改写研究结论。岗位归类规则在 ./rules.js。单个职业簇更新时写 reviewedAt，页面按它显示该簇的研究日期。
 
 export const snapshot = {
   issue: 2,
@@ -18,6 +18,11 @@ export const snapshot = {
       title: '应聘知识清单',
       date: '2026-08-31',
       file: 'reports/2026-08-31-应聘知识清单.md',
+    },
+    {
+      title: 'Agent 评测产品升级核验',
+      date: '2026-10-12',
+      file: 'reports/2026-10-12-Agent评测产品升级核验.md',
     },
   ],
 };
@@ -239,23 +244,26 @@ export const clusters = [
     title: 'Agent Evals Product / Agent 策略 PM',
     shortTitle: 'Agent 评测产品',
     category: '长程任务 × Skill 策略 × 效果归因',
-    noveltyZone: 'frontier',
-    lastSignalAt: '2026-08-17',
+    noveltyZone: 'expanding',
+    lastSignalAt: '2026-10-12',
+    reviewedAt: '2026-10-12',
     whyNew: 'Agent 从聊天变成执行系统后，开始需要专人定义长程任务、Skill、记忆、成本和失败归因。',
     institutionalStatus: 'industry_named',
     demandStage: 'forming',
     confidence: 'high',
     fit: 'direct',
     fitReason: '模型评测、内容质控、产品判断和可验证工作流正好落在核心任务上，是除医学垂直外最贴近现有证据的入口。',
-    signal: '百度 7—8 月连续出现评测产品与 DuMate 策略 PM，职责围绕执行类 Agent 的长程评测和内置 Skill。',
-    judgment: '这是本版最值得良直接关注的新入口；它比通用 AI 产品经理更新，也更贴近良已有的验证型工作流。',
+    signal: '2026-10 腾讯（WorkBuddy Agent Harness 策略产品、混元 Agent 数据策略分析）与美团（CatPaw、LongCat 的 Agent 评测产品和 Agent 评测平台产品）同期在招以 Agent 评测和策略为主责的产品岗；此前 7—8 月百度出现评测产品与 DuMate 策略 PM。',
+    judgment: '这是最值得良直接关注的新入口：比通用 AI 产品经理更新，也更贴近良已有的验证型工作流。2026-10 腾讯、美团两家同期在招，已从前沿升为扩散。',
     facts: [
+      '美团 3 个、腾讯 2 个在招岗位以 Agent 评测或 Agent 策略为主要职责（2026-07-09 至 2026-09-20 发布或更新），覆盖任务分类、Rubric、自动化评测、轨迹级失败归因和 A/B 验收。',
+      '门槛：美团多为 3 年以上；LongCat 岗要求 1 年以上并欢迎算法、工程转岗；网站归入本簇的 9 个岗位里没有实习或应届入口。',
       'DuMate 策略 PM 要制定长程任务测试并优化完成率、记忆连贯性和成本。',
       '岗位负责 Office、浏览器自动化、生图生视频等内置 Skill 的逻辑、调用和复盘。',
       '评测产品实习生把同一组任务作为独立产品职责，而非普通 PM 的附带要求。',
     ],
-    countercase: '当前中国一手证据主要来自百度，可能是公司内部命名；尚不能宣称全国放量。',
-    entry: '作品从单轮回答评测升级到多步任务：完成率、成本、记忆、工具调用、异常恢复和人工接管。',
+    countercase: '证据集中在腾讯、美团两家自研大模型的平台公司，可能只是大厂内部分工；海外没有同名岗位，最接近的是 Cohere 的 Agent Harness 产品经理。若到 2026-12-07 仍无第三家独立雇主且岗位不再补招，回退成型。',
+    entry: '作品从单轮回答评测升级到多步任务：完成率、成本、记忆、工具调用、异常恢复和人工接管；投递先找 1 年经验门槛、欢迎转岗的岗位（如美团 LongCat）和评测类实习。',
     requiredKnowledge: [
       {
         area: 'Agent 运行机制',
@@ -283,6 +291,26 @@ export const clusters = [
       'Agent 产品策略',
     ],
     sources: [
+      {
+        label: '美团｜Agent 评测产品经理（CatPaw）',
+        url: 'https://zhaopin.meituan.com/web/position/detail?jobUnionId=4777203989&highlightType=social',
+        kind: 'employer',
+      },
+      {
+        label: '美团｜LongCat 大模型 - Agent 评测产品经理',
+        url: 'https://zhaopin.meituan.com/web/position/detail?jobUnionId=4301295312&highlightType=social',
+        kind: 'employer',
+      },
+      {
+        label: '腾讯｜WorkBuddy - Agent Harness 策略产品经理',
+        url: 'https://careers.tencent.com/jobdesc.html?postId=2098252455568654336',
+        kind: 'employer',
+      },
+      {
+        label: '腾讯｜混元 Agent 数据策略分析岗',
+        url: 'https://careers.tencent.com/jobdesc.html?postId=2092600086931615744',
+        kind: 'employer',
+      },
       {
         label: '百度｜DuMate 策略 PM（当前列表）',
         url: 'https://talent.baidu.com/jobs/list?recruitType=INTERN',

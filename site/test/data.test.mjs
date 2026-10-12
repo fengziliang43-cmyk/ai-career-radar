@@ -28,6 +28,13 @@ test('research snapshot has 13 complete clusters', () => {
     assert.ok(statusMeta[cluster.institutionalStatus], cluster.id);
     assert.ok(confidenceMeta[cluster.confidence], cluster.id);
     assert.match(cluster.lastSignalAt, /^\d{4}-\d{2}-\d{2}$/);
+    if (cluster.reviewedAt !== undefined) {
+      assert.match(cluster.reviewedAt, /^\d{4}-\d{2}-\d{2}$/, cluster.id);
+      assert.ok(
+        snapshot.reports.some((report) => report.date === cluster.reviewedAt),
+        `${cluster.id}: a report dated ${cluster.reviewedAt} must back the update`,
+      );
+    }
     assert.ok(cluster.facts.length >= 1, cluster.id);
     assert.ok(cluster.requiredKnowledge.length >= 4 && cluster.requiredKnowledge.length <= 5, cluster.id);
     assert.ok(cluster.keywords.length >= 1, cluster.id);

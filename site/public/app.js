@@ -133,7 +133,12 @@ function renderSummary() {
         `<span>其中 <b>${fmt(view.matchedCount)}</b> 个属于下面 13 个职业簇</span>`,
       ]
     : [`<span><b>13</b> 个人工研究的职业簇</span>`];
-  parts.push(`<span>研究判断截至 ${esc(snapshot.updatedAt)}</span>`);
+  const latestReview = clusters.map((cluster) => cluster.reviewedAt ?? '').sort().at(-1);
+  parts.push(
+    latestReview > snapshot.updatedAt
+      ? `<span>研究判断 ${esc(snapshot.updatedAt)}，最近一次更新 ${esc(latestReview)}</span>`
+      : `<span>研究判断截至 ${esc(snapshot.updatedAt)}</span>`,
+  );
   $('summary').innerHTML = parts.join('');
 }
 
@@ -240,7 +245,7 @@ function liveSummaryHtml(cluster) {
 
 function detailHtml(cluster) {
   return `<div class="detail-research">
-  <p class="eyebrow">研究判断 · ${esc(snapshot.updatedAt)}</p>
+  <p class="eyebrow">研究判断 · ${esc(cluster.reviewedAt ?? snapshot.updatedAt)}</p>
   <p class="judgment">${esc(cluster.judgment)}</p>
   <h4>为什么算新</h4>
   <p>${esc(cluster.whyNew)}</p>

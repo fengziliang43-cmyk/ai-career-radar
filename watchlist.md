@@ -1,6 +1,6 @@
 # AI 新职业雷达观察池
 
-> 最近更新：2026-08-31。当前职业排序依据 [[reports/2026-08-29-第1期-v2-前沿修正版|第 1 期 v2 前沿修正版]]；应聘知识依据 [[reports/2026-08-31-应聘知识清单|应聘知识清单]]。本次只补知识，不改变市场排序、适配排序或需求判断。
+> 最近更新：2026-10-12。Agent 评测产品由 frontier 升为 expanding，依据 [[reports/2026-10-12-Agent评测产品升级核验|Agent 评测产品升级核验]]；其余职业排序依据 [[reports/2026-08-29-第1期-v2-前沿修正版|第 1 期 v2 前沿修正版]]，应聘知识依据 [[reports/2026-08-31-应聘知识清单|应聘知识清单]]。
 
 ## 前沿与扩散
 
@@ -8,7 +8,7 @@
 |---:|---|---|---|---|---|---|
 | 1 | FDE / AI Deployment Engineer | expanding | scaling | high | stretch | 一号市场信号；从 PoC、评测、解决方案和客户交付积累 |
 | 2 | AI Product Engineer / AI 产品工程师 | expanding | forming | high | stretch | 把本地 AI 产品升级为能独立解释、调试和部署的作品 |
-| 3 | Agent Evals Product / Agent 策略 PM | frontier | forming | high | direct | 直接关注；做长程任务、Skill、记忆、成本和失败归因 |
+| 3 | Agent Evals Product / Agent 策略 PM | expanding | forming | high | direct | 直接关注；2026-10 腾讯、美团同期在招；做长程任务、Skill、记忆、成本和失败归因 |
 | 4 | Agent Evaluation Engineer / Environment Builder | expanding | scaling | high | stretch | 补 Python、日志分析、自动 grader 和最小评测 harness |
 | 5 | Agent Post-Training Engineer / Researcher | expanding | forming | high | observe | 只作前沿观察，不从零投入完整训练栈 |
 | 6 | Applied AI Architect / Applied AI Engineer | expanding | scaling | high | stretch | 从医疗场景发现、方案、PoC 和验收向中期迁移 |
